@@ -1,1 +1,3 @@
-src
+src/lib
+node_modules
+.DS_Store
