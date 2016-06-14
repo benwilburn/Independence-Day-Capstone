@@ -17,6 +17,7 @@
   "dependencies": {
     "angular": "^1.5.6",
     "firebase": "^3.0.4",
-    "phaser": "^2.4.8"
+    "phaser": "^2.4.8",
+    "angular-route": "^1.5.6"
   }
 }
