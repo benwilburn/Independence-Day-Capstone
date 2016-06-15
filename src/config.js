@@ -3,7 +3,7 @@ angular.module('independence-day')
   $routeProvider
   .when('/', {
     templateUrl: 'game.html',
-    controller: 'game-ctrl',
-    controllerAs: 'game',
-  })
+    controller: 'gameplay-ctrl',
+    controllerAs: 'gameplay',
+  });
 });
