@@ -2,22 +2,41 @@ angular.module('independence-day')
   .controller('gameplay-ctrl', function() {
     var game = new Phaser.Game(1640, 807, Phaser.AUTO, 'independence-day', { preload: preload, create: create, update: update });
 
+
+    // General Variables
     var starfield;
     var player;
-    var boss;
+    var pawns;
     var cursors;
     var bank;
+    var shipTail;
+    var explosions;
 
-    var ACCELERATION = 300;
+    // WASD Variables
+    var wKey;
+    var aKey;
+    var sKey;
+    var dKey;
+
+
+    var bullet;
+    var bullets;
+    var bulletTime = 0;
+    var fireButton;
+
+    var ACCELERATION = 200;
     var DRAG = 100;
-    var MAXSPEED = 500;
+    var MAXSPEED = 300;
 
 
     function preload() {
 
         game.load.image('background', 'assets/images/spaceshooter/Backgrounds/starfield.png');
         game.load.image('player', 'assets/images/spaceshooter/PNG/playerShip1_blue.png');
-        game.load.image('boss', 'assets/images/spaceshooter/PNG/ufoRed.png');
+        game.load.image('bullet', 'assets/images/spaceshooter/PNG/Lasers/laserGreen16.png');
+        game.load.image('pawns', 'assets/images/spaceshooter/PNG/Enemies/enemyBlack1.png');
+        game.load.image('tail', 'assets/images/spaceshooter/PNG/Lasers/laserGreen09.png');
+        game.load.spritesheet('explosion', 'assets/images/explosions.png', 128, 128);
 
     }
 
@@ -29,7 +48,17 @@ angular.module('independence-day')
       // setting background
       starfield = game.add.tileSprite(0,0, 1640, 807, 'background');
 
-      starfield.scale.setTo(2,2);
+      //  Our ships bullets
+      bullets = game.add.group();
+      bullets.enableBody = true;
+      bullets.physicsBodyType = Phaser.Physics.ARCADE;
+
+      //  All 40 of them
+      bullets.createMultiple(40, 'bullet');
+      bullets.setAll('anchor.x', 0.5);
+      bullets.setAll('anchor.y', 0.5);
+      bullets.setAll('scale.x', 0.25);
+      bullets.setAll('scale.y', 0.25);
 
       // creating player
       player = game.add.sprite(300, 300, 'player');
@@ -38,50 +67,74 @@ angular.module('independence-day')
       player.body.maxVelocity.setTo(MAXSPEED, MAXSPEED);
       player.body.drag.setTo(DRAG, DRAG);
       player.rotation = 1.5 * Math.PI;
-      player.scale.x = 0.5;
-      player.scale.y = 0.5;
+      player.scale.x = 0.35;
+      player.scale.y = 0.35;
 
-      // creating boss
-      game.add.sprite(300, 0, 'boss');
+      // PAWNS
+      pawns = game.add.group();
+      pawns.enableBody = true;
+      pawns.physicsBodyType = Phaser.Physics.ARCADE;
+      pawns.createMultiple(5, 'pawns');
+      pawns.setAll('anchor.x', 0.5);
+      pawns.setAll('anchor.y', 0.5);
+      pawns.setAll('scale.x', 0.5);
+      pawns.setAll('scale.y', 0.5);
+      pawns.setAll('angle', 180);
+      // pawns.setAll('outOfBoundsKill', true);
+      // pawns.setAll('checkWorldBounds', true);
+      pawns.forEach(function(enemy){
+        enemy.body.setSize(enemy.width * 3 / 4, enemy.height * 3 / 4);
+      });
+
+
+      launchPawn();
 
       // basic player movment
       cursors = game.input.keyboard.createCursorKeys();
+      // adds these keys for Phaser to recognize
+      wKey = game.input.keyboard.addKey(Phaser.Keyboard.W);
+      aKey = game.input.keyboard.addKey(Phaser.Keyboard.A);
+      sKey = game.input.keyboard.addKey(Phaser.Keyboard.S);
+      dKey = game.input.keyboard.addKey(Phaser.Keyboard.D);
+
+      fireButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+
+      //  An explosion pool
+      explosions = game.add.group();
+      explosions.enableBody = true;
+      explosions.physicsBodyType = Phaser.Physics.ARCADE;
+      explosions.createMultiple(30, 'explosion');
+      explosions.setAll('anchor.x', 0.5);
+      explosions.setAll('anchor.y', 0.5);
+      explosions.forEach( function(explosion) {
+      explosion.animations.add('explosion');
+      });
     }
 
 
     function update() {
       starfield.tilePosition.y += 1;
 
-      // this.wasd = {
-      //   up: game.input.keyboard.addKey(Phaser.Keyboard.W),
-      //   down: game.input.keyboard.addKey(Phaser.Keyboard.S),
-      //   left: game.input.keyboard.addKey(Phaser.Keyboard.A),
-      //   right: game.input.keyboard.addKey(Phaser.Keyboard.D),
-      // };
       //  Reset the player, then check for movement keys
       player.body.acceleration.x = 0;
 
-      if (cursors.up.isDown)
+
+      if (cursors.up.isDown || wKey.isDown)
         {
           game.physics.arcade.accelerationFromRotation(player.rotation, 200, player.body.acceleration);
+
           // player.body.velocity.y = -ACCELERATION - 100;
           starfield.tilePosition.y += 0.5;
         } else {
           player.body.acceleration.set(0);
         }
 
-      if (cursors.down.isDown)
-        {
-          player.body.velocity.y = ACCELERATION -100;
-          starfield.tilePosition.y -= 0.5;
-        }
-
-      if (cursors.left.isDown)
+      if (cursors.left.isDown || aKey.isDown)
         {
           player.body.angularVelocity = -200;
           // player.body.acceleration.x = -ACCELERATION - 100;
           starfield.tilePosition.x -= 0.5;
-        } else if (cursors.right.isDown)
+        } else if (cursors.right.isDown || dKey.isDown)
           {
             player.body.angularVelocity = 200;
             // player.body.acceleration.x = ACCELERATION + 100;
@@ -91,48 +144,97 @@ angular.module('independence-day')
             starfield.tilePosition.y += 1;
             }
 
+      if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR))
+      {
+          fireBullet();
+      }
+
       screenWrap(player);
-      // else if(cursors.up.isDown && cursors.left.isDown) {
-      //   player.body.velocity.y = -ACCELERATION;
-      //   player.body.velocity.x = -ACCELERATION;
-      //   starfield.tilePosition.y += 1;
-      //   starfield.tilePosition.x -= 1;
-      // }
-      // else if(cursors.up.isDown && cursors.right.isDown) {
-      //   player.body.velocity.y = -ACCELERATION;
-      //   player.body.velocity.x = ACCELERATION;
-      //   starfield.tilePosition.y += 1;
-      //   starfield.tilePosition.x += 1;
-      // }
 
-      //  Turn and rotate ship for illusion of "banking"
-      // bank = player.body.velocity.x / MAXSPEED;
-      // player.scale.x = 1 - Math.abs(bank) / 2;
-      // player.angle = bank * 10;
+      // bullets.forEachExists(screenWrap, this);
 
+      // shipTail.addChild(player);
 
+      //  Check collisions
+      game.physics.arcade.overlap(bullets, pawns, shipCollide, null, this);
 
     }
+
+    function shipCollide(player, enemy) {
+      var explosion = explosions.getFirstExists(false);
+      explosion.reset(enemy.body.x + enemy.body.halfWidth, enemy.body.y + enemy.body.halfHeight);
+      explosion.body.velocity.y = enemy.body.velocity.y;
+      explosion.alpha = 0.7;
+      explosion.play('explosion', 30, false, true);
+      enemy.kill();
+    }
+
+    function launchPawn(){
+      var minPawnSpacing = 300;
+      var maxPawnSpacing = 3000;
+      var pawnSpeed = 100;
+
+      var enemy = pawns.getFirstExists(false);
+      if (enemy) {
+        enemy.reset(game.rnd.integerInRange(0, game.width), -20) ;
+        enemy.body.velocity.x = game.rnd.integerInRange(-300, 300);
+        enemy.body.velocity.y = pawnSpeed;
+        enemy.body.drag.x = 100;
+
+        //  Update function for each enemy ship to update rotation etc
+        enemy.update = function(){
+          enemy.angle = 180 - game.math.radToDeg(Math.atan2(enemy.body.velocity.x, enemy.body.velocity.y));
+        };
+      }
+
+      // send another enemy
+      game.time.events.add(game.rnd.integerInRange(minPawnSpacing, maxPawnSpacing), launchPawn);
+    }
+
+    function fireBullet () {
+      var bulletSpacing = 150;
+      if (game.time.now > bulletTime)
+      {
+
+          bullet = bullets.getFirstExists(false);
+          if (bullet)
+          {
+              bullet.reset(player.body.x + 14, player.body.y + 18);
+
+              bullet.lifespan = 1800;
+              bullet.rotation = player.rotation;
+              game.physics.arcade.velocityFromRotation(player.rotation, 500, bullet.body.velocity);
+              bulletTime = game.time.now + 50;
+              bulletTime = game.time.now + bulletSpacing;
+          }
+      }
+
+    }
+
 
     function screenWrap (sprite) {
 
-    if (sprite.x < 0)
-    {
-        sprite.x = game.width;
-    }
-    else if (sprite.x > game.width)
-    {
-        sprite.x = 0;
+      if (sprite.x < 0)
+      {
+          sprite.x = game.width;
+      }
+      else if (sprite.x > game.width)
+      {
+          sprite.x = 0;
+      }
+
+      if (sprite.y < 0)
+      {
+          sprite.y = game.height;
+      }
+      else if (sprite.y > game.height)
+      {
+          sprite.y = 0;
+      }
+
     }
 
-    if (sprite.y < 0)
-    {
-        sprite.y = game.height;
-    }
-    else if (sprite.y > game.height)
-    {
-        sprite.y = 0;
-    }
+  function render() {
 
-}
-  });
+  }
+});
