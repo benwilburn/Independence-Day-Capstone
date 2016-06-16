@@ -46,8 +46,12 @@ angular.module('independence-day')
       // arcade physics system
       game.physics.startSystem(Phaser.Physics.ARCADE);
 
+      // setting game bounds
+      game.world.setBounds(0, 0, 1920, 1920);
+
       // setting background
-      starfield = game.add.tileSprite(0,0, 1640, 807, 'background');
+      starfield = game.add.tileSprite(0,0, 1920, 1920, 'background');
+
 
       //  Our ships bullets
       bullets = game.add.group();
@@ -72,21 +76,23 @@ angular.module('independence-day')
       player.rotation = 1.5 * Math.PI;
       player.scale.x = 0.35;
       player.scale.y = 0.35;
+      player.body.collideWorldBounds = true;
+      game.camera.follow(player);
 
       // PAWNS
       pawns = game.add.group();
       pawns.enableBody = true;
       pawns.physicsBodyType = Phaser.Physics.ARCADE;
-      pawns.createMultiple(5, 'pawns');
+      pawns.createMultiple(20, 'pawns');
       pawns.setAll('anchor.x', 0.5);
       pawns.setAll('anchor.y', 0.5);
-      pawns.setAll('scale.x', 0.5);
-      pawns.setAll('scale.y', 0.5);
+      pawns.setAll('scale.x', 0.30);
+      pawns.setAll('scale.y', 0.30);
       pawns.setAll('angle', 180);
       pawns.setAll('outOfBoundsKill', true);
       pawns.setAll('checkWorldBounds', true);
       pawns.forEach(function(enemy){
-        enemy.body.setSize(enemy.width * 3 / 4, enemy.height * 3 / 4);
+        enemy.body.setSize(enemy.width * 1 / 2, enemy.height * 1 / 2);
         enemy.damageAmount = 10;
       });
 
@@ -115,14 +121,18 @@ angular.module('independence-day')
       });
 
       //  Health stat
-      health = game.add.text(game.world.width - 150, 10, 'Health: ' + player.health +'%', { font: '20px Arial', fill: '#fff' });
+      health = game.add.text(game.camera.width - 150, 10, 'Health: ' + player.health +'%', { font: '20px Arial', fill: '#fff' });
+
+      health.fixedToCamera = true;
 
       health.render = function () {
         health.text = 'health: ' + Math.max(player.health, 0) +'%';
       };
 
+
       // Sheilds stat
-      sheilds = game.add.text(game.world.width - 300, 10, 'Sheilds: ' + player.sheilds +'%', { font: '20px Arial', fill: '#fff' });
+      sheilds = game.add.text(game.camera.width - 300, 10, 'Sheilds: ' + player.sheilds +'%', { font: '20px Arial', fill: '#fff' });
+      sheilds.fixedToCamera = true
 
       sheilds.render = function () {
         sheilds.text = 'Sheilds: ' + Math.max(player.sheilds, 0) + '%';
@@ -131,10 +141,14 @@ angular.module('independence-day')
 
 
     function update() {
-      starfield.tilePosition.y += 1;
+      // starfield.tilePosition.y += 1;
 
       //  Reset the player, then check for movement keys
       player.body.acceleration.x = 0;
+
+      pawns.forEach(function(pawn) {
+        pawn.rotation = game.physics.arcade.moveToObject(pawn, player, 100, 2000, 2000);
+      });
 
 
       if (cursors.up.isDown || wKey.isDown)
@@ -167,7 +181,7 @@ angular.module('independence-day')
           fireBullet();
       }
 
-      screenWrap(player);
+      // screenWrap(player);
 
       // bullets.forEachExists(screenWrap, this);
 
