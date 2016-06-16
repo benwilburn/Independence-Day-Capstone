@@ -12,6 +12,7 @@ angular.module('independence-day')
     var shipTail;
     var explosions;
 
+
     // WASD Variables
     var wKey;
     var aKey;
@@ -62,6 +63,8 @@ angular.module('independence-day')
 
       // creating player
       player = game.add.sprite(300, 300, 'player');
+      player.sheilds = 60;
+      player.health = 100;
       player.anchor.setTo(0.5, 0.5);
       game.physics.enable(player, Phaser.Physics.ARCADE);
       player.body.maxVelocity.setTo(MAXSPEED, MAXSPEED);
@@ -80,10 +83,11 @@ angular.module('independence-day')
       pawns.setAll('scale.x', 0.5);
       pawns.setAll('scale.y', 0.5);
       pawns.setAll('angle', 180);
-      // pawns.setAll('outOfBoundsKill', true);
-      // pawns.setAll('checkWorldBounds', true);
+      pawns.setAll('outOfBoundsKill', true);
+      pawns.setAll('checkWorldBounds', true);
       pawns.forEach(function(enemy){
         enemy.body.setSize(enemy.width * 3 / 4, enemy.height * 3 / 4);
+        enemy.damageAmount = 10;
       });
 
 
@@ -109,6 +113,20 @@ angular.module('independence-day')
       explosions.forEach( function(explosion) {
       explosion.animations.add('explosion');
       });
+
+      //  Health stat
+      health = game.add.text(game.world.width - 150, 10, 'Health: ' + player.health +'%', { font: '20px Arial', fill: '#fff' });
+
+      health.render = function () {
+        health.text = 'health: ' + Math.max(player.health, 0) +'%';
+      };
+
+      // Sheilds stat
+      sheilds = game.add.text(game.world.width - 300, 10, 'Sheilds: ' + player.sheilds +'%', { font: '20px Arial', fill: '#fff' });
+
+      sheilds.render = function () {
+        sheilds.text = 'Sheilds: ' + Math.max(player.sheilds, 0) + '%';
+      };
     }
 
 
@@ -144,7 +162,7 @@ angular.module('independence-day')
             starfield.tilePosition.y += 1;
             }
 
-      if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR))
+      if (player.alive && fireButton.isDown)
       {
           fireBullet();
       }
@@ -156,8 +174,19 @@ angular.module('independence-day')
       // shipTail.addChild(player);
 
       //  Check collisions
-      game.physics.arcade.overlap(bullets, pawns, shipCollide, null, this);
+      game.physics.arcade.overlap(pawns, bullets,  hitEnemy, null, this);
+      game.physics.arcade.overlap(player, pawns, shipCollide, null, this);
 
+    }
+
+    function hitEnemy(enemy, bullet) {
+        var explosion = explosions.getFirstExists(false);
+        explosion.reset(bullet.body.x + bullet.body.halfWidth, bullet.body.y + bullet.body.halfHeight);
+        explosion.body.velocity.y = enemy.body.velocity.y;
+        explosion.alpha = 0.7;
+        explosion.play('explosion', 30, false, true);
+        enemy.kill();
+        bullet.kill();
     }
 
     function shipCollide(player, enemy) {
@@ -167,6 +196,17 @@ angular.module('independence-day')
       explosion.alpha = 0.7;
       explosion.play('explosion', 30, false, true);
       enemy.kill();
+
+
+      if (player.sheilds > 0) {
+        player.sheilds -= enemy.damageAmount;
+        console.log("sheilds", player.sheilds);
+        sheilds.render();
+      } else {
+        console.log('health');
+        player.damage(enemy.damageAmount);
+        health.render();
+      }
     }
 
     function launchPawn(){
