@@ -1,0 +1,24 @@
+<div>
+  <div>
+    <div>
+      <h1>Login</h1>
+
+      <form ng-submit='auth.login()'>
+        <div>
+          <label for='username'>If This Is Your First Time, Create A Username Here</label>
+          <input type='text' name='username' id='username' ng-model='auth.user.username'/>
+        </div>
+        <div>
+          <label for='email'>Email</label>
+          <input type='email' name='email' id='email' ng-model='auth.user.email'/>
+        </div>
+        <div>
+          <label for='password'>Password</label>
+          <input type='password' name='password' id='password' ng-model='auth.user.password'/>
+        </div>
+        <button type='button' ng-click='auth.register()'>Register</button>
+        <button type='submit'>Login</button>
+      </form>
+    </div>
+  </div>
+</div>

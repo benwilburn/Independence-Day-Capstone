@@ -2,7 +2,12 @@ angular.module('independence-day')
   .config(($routeProvider) => {
   $routeProvider
   .when('/', {
-    templateUrl: 'game.html',
+    templateUrl: 'auth/login.html',
+    controller: 'auth-ctrl',
+    controllerAs: 'auth',
+  })
+  .when('/independence-day', {
+    templateUrl: 'game/game.html',
     controller: 'gameplay-ctrl',
     controllerAs: 'gameplay',
   });
