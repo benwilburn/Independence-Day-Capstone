@@ -8,6 +8,7 @@ angular.module('independence-day')
     var player;
     var pawns;
     var destroyers;
+    var boss;
     var destroyerBullets;
     var cursors;
     var bank;
@@ -20,6 +21,7 @@ angular.module('independence-day')
     var enemyCounter = 0;
     var enemyCounterDisplay;
     var waveLaunched = false;
+    var bossHitCount = 0;
 
     // WASD Variables
     var wKey;
@@ -45,9 +47,13 @@ angular.module('independence-day')
         game.load.physics('player_physics', 'assets/playerShipBlue_physics.json');
         game.load.image('bullet', 'assets/images/spaceshooter/PNG/Lasers/laserGreen16.png');
         game.load.image('pawns', 'assets/images/spaceshooter/PNG/Enemies/enemyBlack1.png');
-        game.load.image('destroyers', 'assets/images/spaceshooter/PNG/redshipr.png');
+        // game.load.image('destroyers', 'assets/images/spaceshooter/PNG/redshipr.png');
         game.load.image('destroyerBullet', 'assets/images/spaceshooter/PNG/Lasers/laserBlue16.png');
         game.load.spritesheet('explosion', 'assets/images/explosions.png', 128, 128);
+        game.load.image('destroyers', 'assets/images/spaceshooter/PNG/ospaceship-main.png');
+        game.load.physics('destroyer_physics', 'assets/oShip_physics.json');
+        game.load.image('bigBoss', 'assets/images/spaceshooter/PNG/bossShip.png');
+        game.load.physics('bigBoss_physics', 'assets/bigBossShip_physics.json');
 
     }
 
@@ -115,7 +121,7 @@ angular.module('independence-day')
       player.shields = 60;
       player.health = 100;
       player.body.damping = 0.5;
-      player.rotation = 1.5 * Math.PI;
+      // player.rotation = 1.5 * Math.PI;
       player.body.collideWorldBounds = true;
       game.camera.follow(player);
       player.body.clearShapes();
@@ -143,6 +149,7 @@ angular.module('independence-day')
         enemy.body.setCollisionGroup(enemyCollisionGroup);
         enemy.body.collides(playerBulletCollisionGroup, hitEnemy);
         enemy.body.collides(playerCollisionGroup);
+        enemy.body.collides(enemyCollisionGroup);
 
       });
 
@@ -156,22 +163,46 @@ angular.module('independence-day')
       destroyers.setAll('health', 120);
       destroyers.forEach(function(enemy) {
 
-        enemy.damageAmount = 40;
+        enemy.damageAmount = 20;
         enemy.scorePoints = 10;
         enemy.isHit = false;
         enemy.hasHit = false;
         enemy.body.mass = 100;
         enemy.body.collideWorldBounds = true;
-        enemy.body.setRectangleFromSprite();
+        enemy.rotation = 1.5 * Math.PI;
+        // enemy.body.setRectangleFromSprite();
+        enemy.body.clearShapes();
+        enemy.body.loadPolygon('destroyer_physics', 'ospaceship-main');
+        enemy.body.setCollisionGroup(enemyCollisionGroup);
+        enemy.body.collides(playerBulletCollisionGroup, hitEnemy);
+        enemy.body.collides(playerCollisionGroup);
+        enemy.body.collides(enemyCollisionGroup);
+
+      });
+
+      // BOSS
+      // boss = game.add.sprite(game.rnd.integerInRange(0, game.world.width), game.rnd.integerInRange(0, game.world.height), 'bigBoss');
+      // game.physics.p2.enable(boss, true);
+      boss = game.add.group();
+      boss.enableBody = true;
+      boss.physicsBodyType = Phaser.Physics.P2JS;
+      boss.createMultiple(1, 'bigBoss');
+      boss.setAll('anchor.x', 0.5);
+      boss.setAll('anchor.y', 0.5);
+      boss.forEach(function(enemy) {
+
+        // enemy.rotation =
+        // enemy.healthPoints = 2000;
+        enemy.damageAmount = 40;
+        enemy.body.mass = 2000;
+        enemy.body.clearShapes();
+        enemy.body.loadPolygon('bigBoss_physics', 'bossShip');
+        enemy.body.collideWorldBounds = true;
         enemy.body.setCollisionGroup(enemyCollisionGroup);
         enemy.body.collides(playerBulletCollisionGroup, hitEnemy);
         enemy.body.collides(playerCollisionGroup);
 
       });
-
-
-      // game.time.events.add(1000, launchPawns);
-      // game.time.events.add(3000, launchDestroyers);
 
       game.time.events.add(5000, launchWave);
 
@@ -179,7 +210,7 @@ angular.module('independence-day')
       // destroyerBullets = game.add.group();
       // destroyerBullets.enableBody = true;
       // destroyerBullets.physicsBodyType = Phaser.Physics.P2JS;
-      // destroyerBullets.createMultiple(10, 'destroyerBullet');
+      // destroyerBullets.createMultiple(50, 'destroyerBullet');
       // destroyerBullets.setAll('alpha', 0.9);
       // destroyerBullets.setAll('anchor.x', 0.5);
       // destroyerBullets.setAll('anchor.y', 0.5);
@@ -245,7 +276,7 @@ angular.module('independence-day')
       gameOver.fixedToCamera = true;
 
       // enemy counter
-      enemyCounterDisplay = game.add.text(game.camera.width -800, 10, 'Enemies Left: ' + enemyCounter, { font: '20px Arial', fill: '#fff'} );
+      enemyCounterDisplay = game.add.text(game.camera.width -800, 10, 'Enemies in Wave: ' + enemyCounter, { font: '20px Arial', fill: '#fff'} );
       enemyCounterDisplay.fixedToCamera = true;
 
       enemyCounterDisplay.render = function(){
@@ -259,7 +290,7 @@ angular.module('independence-day')
       starfield.tilePosition.y += 0.25;
 
       pawns.forEach(function(pawn) {
-        if(Math.abs(player.position.x - pawn.position.x) <= 500 && Math.abs(player.position.y - pawn.position.y) <= 500 || pawn.engaged){
+        if(Math.abs(player.position.x - pawn.position.x) <= 900 && Math.abs(player.position.y - pawn.position.y) <= 500 || pawn.engaged){
 
         pawn.engaged = true;
         moveEnemies(pawn, 80);
@@ -275,7 +306,16 @@ angular.module('independence-day')
           moveEnemies(destroyer, 1500);
 
         }
+
       });
+
+      boss.forEach(function(boss) {
+          if(Math.abs(player.position.x - boss.position.x) <= 700 && Math.abs(player.position.y - boss.position.y) <= 700 || boss.engaged){
+          boss.engaged = true;
+          moveEnemies(boss, 1500);
+          }
+      });
+
 
       if (cursors.up.isDown || wKey.isDown)
         {
@@ -322,6 +362,26 @@ angular.module('independence-day')
         starfield.tilePosition.y -= (player.body.velocity.y * game.time.physicsElapsed);
       }
 
+
+      // // BOSS TELEPORT
+      // boss.forEach(function(enemy){
+
+      //   if(b ){
+      //     console.log('teleport');
+
+      //   }
+        // if(enemy.healthPoints <= 1000){
+        //   console.log('2teleport')
+        //   enemy.reset(game.rnd.integerInRange(0, game.world.width), game.rnd.integerInRange(0, game.world.height));
+        // }
+        // if(enemy.healthPoints <= 500){
+        //   console.log('3teleport')
+        //   enemy.reset(game.rnd.integerInRange(0, game.world.width), game.rnd.integerInRange(0, game.world.height));
+        // }
+
+      // });
+
+
       // wave over
       if(enemyCounter <= 0 && waveLaunched ){
         console.log('waveOver');
@@ -343,15 +403,16 @@ angular.module('independence-day')
     }
 
 
-    function launchWave (pawns, destroyers) {
+    function launchWave (pawns, destroyers, boss) {
 
       alert('launchWave');
 
       waveLaunched = true;
 
       // if argument exists use it... if not use number
-      pawns = pawns ? pawns : 15;
-      destroyers = destroyers ? destroyers : 2;
+      pawns = pawns ? pawns : 0;
+      destroyers = destroyers ? destroyers : 0;
+      boss = boss ? boss : 1;
 
       for(var i = 0; i < pawns; i++){
         launchPawns();
@@ -365,8 +426,14 @@ angular.module('independence-day')
         enemyCounterDisplay.render();
       }
 
+      for(var b = 0; b < boss; b++){
+        launchBoss();
+        enemyCounter++;
+        enemyCounterDisplay.render();
+      }
 
     }
+
 
 
     function setResetHandlers() {
@@ -389,6 +456,7 @@ angular.module('independence-day')
           bullet.sprite.kill();
           enemy.sprite.isHit = true;
           enemy.sprite.healthPoints -= bullet.sprite.damageAmount;
+          bossHitCount++;
 
 
           if(enemy.sprite.healthPoints > 0){
@@ -403,11 +471,21 @@ angular.module('independence-day')
             enemyCounter -= 1;
 
           }
+
         }
+        // enemy.forEach(function(enemy){
+
+          console.log('boss health', enemy.sprite.healthPoints);
+
+          if(bossHitCount % 30 === 0){
+            enemy.reset(game.rnd.integerInRange(0, game.world.width), game.rnd.integerInRange(0, game.world.height));
+            console.log('boss health', enemy.sprite.healthPoints);
+          }
+
+        // });
 
         enemyCounterDisplay.render();
         gameScore.render();
-
 
     }
 
@@ -464,6 +542,17 @@ angular.module('independence-day')
       explosion.play('explosion', 30, false, true);
     }
 
+    function launchBoss() {
+      var enemy = boss.getFirstExists(false);
+      if(enemy) {
+        enemy.hasHit = false;
+        enemy.isHit = false;
+        enemy.healthPoints = 2000;
+        enemy.engaged = true;
+        enemy.reset(game.rnd.integerInRange(0, game.world.width), game.rnd.integerInRange(0, game.world.height));
+      }
+    }
+
     function launchDestroyers(){
       var minDestroyerSpacing = 500;
       var maxDestroyerSpacing = 1000;
@@ -511,7 +600,14 @@ angular.module('independence-day')
       obj1.body.force.y = Math.sin(angle) * speed;
     }
 
+    // function bossMovement(boss) {
 
+    //   if(Math.abs(player.position.x - boss.position.x) <= 1000 && Math.abs(player.position.y - boss.position.y) <= 1000 || boss.engaged){
+    //     boss.engaged = true;
+    //     moveEnemies(boss, 2000);
+    //   }
+
+    // }
 
     function firePhaser () {
       var phaserSpacing = 150;
