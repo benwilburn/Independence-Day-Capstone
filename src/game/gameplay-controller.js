@@ -11,7 +11,6 @@ angular.module('independence-day')
     var boss;
     var destroyerBullets;
     var cursors;
-    var bank;
     var shipTail;
     var explosions;
     var pawnLauchTimer;
@@ -21,6 +20,9 @@ angular.module('independence-day')
     var enemyCounter = 0;
     var enemyCounterDisplay;
     var waveLaunched = false;
+    var firstWaveCompleted = false;
+    var secondWaveCompleted = false;
+    var bossIsDown = false;
     var bossHitCount = 0;
 
     // WASD Variables
@@ -45,8 +47,10 @@ angular.module('independence-day')
         game.load.image('background', 'assets/images/spaceshooter/Backgrounds/starfield.png');
         game.load.image('player', 'assets/images/spaceshooter/PNG/playerShip1_blue.png');
         game.load.physics('player_physics', 'assets/playerShipBlue_physics.json');
-        game.load.image('bullet', 'assets/images/spaceshooter/PNG/Lasers/laserGreen16.png');
+        game.load.image('phaser', 'assets/images/spaceshooter/PNG/Lasers/laserGreen16.png');
+        // game.load.physics('phaser_physics', 'assets/phaser_physics.json');
         game.load.image('pawns', 'assets/images/spaceshooter/PNG/Enemies/enemyBlack1.png');
+        game.load.physics('pawn_physics', 'assets/pawn_physics.json');
         // game.load.image('destroyers', 'assets/images/spaceshooter/PNG/redshipr.png');
         game.load.image('destroyerBullet', 'assets/images/spaceshooter/PNG/Lasers/laserBlue16.png');
         game.load.spritesheet('explosion', 'assets/images/explosions.png', 128, 128);
@@ -96,7 +100,7 @@ angular.module('independence-day')
       phasers.physicsBodyType = Phaser.Physics.P2JS;
 
       //  All 40 of them
-      phasers.createMultiple(40, 'bullet');
+      phasers.createMultiple(40, 'phaser');
       phasers.setAll('anchor.x', 0.5);
       phasers.setAll('anchor.y', 0.5);
       phasers.setAll('scale.x', 0.25);
@@ -105,6 +109,8 @@ angular.module('independence-day')
 
         phaser.body.mass = 1;
         phaser.body.setRectangleFromSprite();
+        // phaser.body.clearShapes();
+        // phaser.body.loadPolygon('phaser_physics', 'laserGreen01')
         phaser.body.setCollisionGroup(playerBulletCollisionGroup);
         phaser.body.collides(enemyCollisionGroup);
         phaser.body.collideWorldBounds = false;
@@ -133,11 +139,11 @@ angular.module('independence-day')
       pawns = game.add.group();
       pawns.enableBody = true;
       pawns.physicsBodyType = Phaser.Physics.P2JS;
-      pawns.createMultiple(30, 'pawns');
+      pawns.createMultiple(50, 'pawns');
       pawns.setAll('anchor.x', 0.5);
       pawns.setAll('anchor.y', 0.5);
-      pawns.setAll('scale.x', 0.30);
-      pawns.setAll('scale.y', 0.30);
+      // pawns.setAll('scale.x', 0.30);
+      // pawns.setAll('scale.y', 0.30);
       pawns.forEach(function(enemy) {
 
         enemy.damageAmount = 10;
@@ -145,7 +151,8 @@ angular.module('independence-day')
         enemy.isHit = false;
         enemy.hasHit = false;
         enemy.body.collideWorldBounds = true;
-        enemy.body.setRectangleFromSprite();
+        enemy.body.clearShapes();
+        enemy.body.loadPolygon('pawn_physics', 'enemyBlack1');
         enemy.body.setCollisionGroup(enemyCollisionGroup);
         enemy.body.collides(playerBulletCollisionGroup, hitEnemy);
         enemy.body.collides(playerCollisionGroup);
@@ -157,7 +164,7 @@ angular.module('independence-day')
       destroyers = game.add.group();
       destroyers.enableBody = true;
       destroyers.physicsBodyType = Phaser.Physics.P2JS;
-      destroyers.createMultiple(3, 'destroyers');
+      destroyers.createMultiple(20, 'destroyers');
       destroyers.setAll('anchor.x', 0.5);
       destroyers.setAll('anchor.y', 0.5);
       destroyers.setAll('health', 120);
@@ -362,32 +369,6 @@ angular.module('independence-day')
         starfield.tilePosition.y -= (player.body.velocity.y * game.time.physicsElapsed);
       }
 
-
-      // // BOSS TELEPORT
-      // boss.forEach(function(enemy){
-
-      //   if(b ){
-      //     console.log('teleport');
-
-      //   }
-        // if(enemy.healthPoints <= 1000){
-        //   console.log('2teleport')
-        //   enemy.reset(game.rnd.integerInRange(0, game.world.width), game.rnd.integerInRange(0, game.world.height));
-        // }
-        // if(enemy.healthPoints <= 500){
-        //   console.log('3teleport')
-        //   enemy.reset(game.rnd.integerInRange(0, game.world.width), game.rnd.integerInRange(0, game.world.height));
-        // }
-
-      // });
-
-
-      // wave over
-      if(enemyCounter <= 0 && waveLaunched ){
-        console.log('waveOver');
-        waveLaunched = false;
-      }
-
       //  Game over?
       if (!player.alive && gameOver.visible === false) {
 
@@ -400,6 +381,55 @@ angular.module('independence-day')
         fadeInGameOver.start();
 
       }
+
+      boss.forEach(function(enemy) {
+
+        if(enemy.healthPoints <= 0){
+
+            bossIsDown = true;
+
+        }
+
+      });
+
+      // wave over
+      if(enemyCounter <= 0 && bossIsDown){
+
+        // alert('you win');
+        // if (player.alive && gameOver.visible === false) {
+
+          gameOver.visible = true;
+          console.log('gameOver', gameOver);
+          var fadeInBossKilled = game.add.tween(gameOver);
+          console.log('fadeInGameOver', fadeInBossKilled);
+          fadeInBossKilled.to({alpha: 1}, 1000, Phaser.Easing.Quintic.Out);
+          fadeInBossKilled.onComplete.add(setResetHandlers);
+          fadeInBossKilled.start();
+          setResetHandlers();
+
+        // }
+
+      } else if(enemyCounter <= 0 && secondWaveCompleted){
+
+        launchWave(10, 3, 1);
+        waveLaunched = false;
+
+
+      } else if(enemyCounter <= 0 && firstWaveCompleted){
+
+        launchWave(20, 5, 0);
+        waveLaunched = false;
+        secondWaveCompleted = true;
+
+      } else if (enemyCounter <= 0 && waveLaunched){
+
+        waveLaunched = false;
+        firstWaveCompleted = true;
+
+      } else {
+
+      }
+
     }
 
 
@@ -410,9 +440,9 @@ angular.module('independence-day')
       waveLaunched = true;
 
       // if argument exists use it... if not use number
-      pawns = pawns ? pawns : 0;
-      destroyers = destroyers ? destroyers : 0;
-      boss = boss ? boss : 1;
+      pawns = pawns ? pawns : 15;
+      destroyers = destroyers ? destroyers : 2;
+      boss = boss ? boss : 0;
 
       for(var i = 0; i < pawns; i++){
         launchPawns();
@@ -494,12 +524,21 @@ angular.module('independence-day')
 
       //  Reset the enemies
       pawns.callAll('kill');
+      destroyers.callAll('kill');
+      boss.callAll('kill');
+      score = 0;
+      gameScore.render();
+      enemyCounter = 0;
       enemyCounterDisplay.render();
-      game.time.events.remove(pawnLaunchTimer);
-      game.time.events.add(1000, launchPawns);
+      waveLaunched = false;
+      firstWaveCompleted = false;
+      secondWaveCompleted = false;
+      bossIsDown = false;
+      game.time.events.add(5000, launchWave);
 
       //  Revive the player
       player.revive();
+      player.shields = 60;
       player.health = 100;
       health.render();
 
@@ -581,7 +620,13 @@ angular.module('independence-day')
         enemy.isHit = false;
         enemy.healthPoints = 10;
         enemy.engaged = false;
-        enemy.reset(game.rnd.integerInRange(0, game.world.width), game.rnd.integerInRange(0, game.world.height));
+        var enemyX = game.world.randomX;
+        var enemyY = game.world.randomY;
+        while((enemyX > player.x - 500 && enemyX < player.x + 500) && (enemyY > player.y - 500 && enemyY < player.y + 500)) {
+          enemyX = game.world.randomX;
+          enemyY = game.world.randomY;
+        }
+        enemy.reset(enemyX, enemyY);
       }
 
       // send another enemy
