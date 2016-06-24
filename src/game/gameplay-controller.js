@@ -24,6 +24,14 @@ angular.module('independence-day')
     var secondWaveCompleted = false;
     var bossIsDown = false;
     var bossHitCount = 0;
+    var pad;
+    // var leftTriggerButton;
+    // var rightTriggerButton = pad.getButton(Phaser.Gamepad.PS3XC_R2);
+    var leftStickX;
+    var leftStickY;
+    var rightStickX;
+    var rightStickY;
+
 
     // WASD Variables
     var wKey;
@@ -65,6 +73,12 @@ angular.module('independence-day')
 
       // arcade physics system
       game.physics.startSystem(Phaser.Physics.P2JS);
+
+      // starting gamepad input
+      game.input.gamepad.start();
+
+      pad = game.input.gamepad.pad1;
+      // pad.addCallbacks(this, { onConnect: addButtons });
 
       // setting game bounds
       game.world.setBounds(0, 0, 2500, 2500);
@@ -324,12 +338,12 @@ angular.module('independence-day')
       });
 
 
-      if (cursors.up.isDown || wKey.isDown)
+      if (cursors.up.isDown || wKey.isDown || pad.isDown(Phaser.Gamepad.PS3XC_DPAD_UP) || pad.isDown(Phaser.Gamepad.XBOX360_DPAD_UP))
         {
 
           player.body.thrust(500);
 
-        } else if (cursors.down.isDown || sKey.isDown) {
+        } else if (cursors.down.isDown || sKey.isDown || pad.isDown(Phaser.Gamepad.PS3XC_DPAD_DOWN) || pad.isDown(Phaser.Gamepad.XBOX360_DPAD_DOWN)) {
 
             player.body.reverse(200);
 
@@ -339,11 +353,11 @@ angular.module('independence-day')
 
             }
 
-      if (cursors.left.isDown || aKey.isDown) {
+      if (cursors.left.isDown || aKey.isDown || pad.isDown(Phaser.Gamepad.XBOX360_DPAD_LEFT) || pad.isDown(Phaser.Gamepad.XBOX360_DPAD_LEFT)) {
 
           player.body.rotateLeft(125);
 
-        } else if (cursors.right.isDown || dKey.isDown){
+        } else if (cursors.right.isDown || dKey.isDown || pad.isDown(Phaser.Gamepad.PS3XC_DPAD_RIGHT) || pad.isDown(Phaser.Gamepad.XBOX360_DPAD_RIGHT)){
 
             player.body.rotateRight(125);
 
@@ -353,7 +367,7 @@ angular.module('independence-day')
 
           }
 
-      if (player.alive && fireButton.isDown)
+      if (player.alive && fireButton.isDown || pad.isDown(Phaser.Gamepad.PS3XC_R2))
       {
           firePhaser();
       }
@@ -431,6 +445,31 @@ angular.module('independence-day')
       }
 
     }
+
+    // function addButtons() {
+    //   // leftTriggerButton = pad.getButton(Phaser.Gamepad.PS4_LEFT_TRIGGER);
+
+    //   //   leftTriggerButton.onDown.add(onLeftTrigger);
+    //   //   leftTriggerButton.onUp.add(onLeftTrigger);
+    //   //   leftTriggerButton.onFloat.add(onLeftTrigger);
+
+    //   rightTriggerButton = pad.getButton(Phaser.Gamepad.PS3XC_R2);
+
+    //     rightTriggerButton.onDown.add(onRightTrigger);
+    //     rightTriggerButton.onUp.add(onRightTrigger);
+    //     rightTriggerButton.onFloat.add(onRightTrigger);
+
+    //   leftStickX = pad.getButton(Phaser.Gamepad.PS3XC_STICK_LEFT_X);
+    //   leftStickX = pad.getButton(Phaser.Gamepad.PS3XC_STICK_LEFT_Y);
+
+    //   rightStickX = pad.getButton(Phaser.Gamepad.PS3XC_STICK_RIGHT_X);
+    //   rightStickX = pad.getButton(Phaser.Gamepad.PS3XC_STICK_RIGHT_Y);
+
+    // }
+
+    // function onRightTrigger() {
+    //   firePhaser();
+    // }
 
 
     function launchWave (pawns, destroyers, boss) {
@@ -634,7 +673,7 @@ angular.module('independence-day')
     }
 
     function moveEnemies (enemy, speed) {
-     accelerateToObject(enemy,player,speed);  //start accelerateToObject on every bullet
+     accelerateToObject(enemy,player,speed);  //start accelerateToObject on every enemy
     }
 
     function accelerateToObject(obj1, obj2, speed) {
