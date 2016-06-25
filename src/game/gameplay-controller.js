@@ -338,12 +338,12 @@ angular.module('independence-day')
       });
 
 
-      if (cursors.up.isDown || wKey.isDown || pad.isDown(Phaser.Gamepad.PS3XC_DPAD_UP) || pad.isDown(Phaser.Gamepad.XBOX360_DPAD_UP))
+      if (cursors.up.isDown || wKey.isDown || pad.isDown(Phaser.Gamepad.PS3XC_DPAD_UP) || pad.isDown(Phaser.Gamepad.XBOX360_DPAD_UP) || pad.axis(Phaser.Gamepad.PS3XC_STICK_RIGHT_Y) < -0.5)
         {
 
-          player.body.thrust(500);
+          player.body.thrust(400);
 
-        } else if (cursors.down.isDown || sKey.isDown || pad.isDown(Phaser.Gamepad.PS3XC_DPAD_DOWN) || pad.isDown(Phaser.Gamepad.XBOX360_DPAD_DOWN)) {
+        } else if (cursors.down.isDown || sKey.isDown || pad.isDown(Phaser.Gamepad.PS3XC_DPAD_DOWN) || pad.isDown(Phaser.Gamepad.XBOX360_DPAD_DOWN) || pad.axis(Phaser.Gamepad.PS3XC_STICK_RIGHT_Y) > 0.5) {
 
             player.body.reverse(200);
 
@@ -353,13 +353,13 @@ angular.module('independence-day')
 
             }
 
-      if (cursors.left.isDown || aKey.isDown || pad.isDown(Phaser.Gamepad.XBOX360_DPAD_LEFT) || pad.isDown(Phaser.Gamepad.XBOX360_DPAD_LEFT)) {
+      if (cursors.left.isDown || aKey.isDown || pad.isDown(Phaser.Gamepad.XBOX360_DPAD_LEFT) || pad.isDown(Phaser.Gamepad.XBOX360_DPAD_LEFT) || pad.axis(Phaser.Gamepad.PS3XC_STICK_LEFT_X) < -0.1) {
 
-          player.body.rotateLeft(125);
+          player.body.rotateLeft(100);
 
-        } else if (cursors.right.isDown || dKey.isDown || pad.isDown(Phaser.Gamepad.PS3XC_DPAD_RIGHT) || pad.isDown(Phaser.Gamepad.XBOX360_DPAD_RIGHT)){
+        } else if (cursors.right.isDown || dKey.isDown || pad.isDown(Phaser.Gamepad.PS3XC_DPAD_RIGHT) || pad.isDown(Phaser.Gamepad.XBOX360_DPAD_RIGHT) || pad.axis(Phaser.Gamepad.PS3XC_STICK_LEFT_X) > 0.1){
 
-            player.body.rotateRight(125);
+            player.body.rotateRight(100);
 
           } else {
 
@@ -407,7 +407,7 @@ angular.module('independence-day')
       });
 
       // wave over
-      if(enemyCounter <= 0 && bossIsDown){
+      if(bossIsDown){
 
         // alert('you win');
         // if (player.alive && gameOver.visible === false) {
@@ -416,10 +416,9 @@ angular.module('independence-day')
           console.log('gameOver', gameOver);
           var fadeInBossKilled = game.add.tween(gameOver);
           console.log('fadeInGameOver', fadeInBossKilled);
-          fadeInBossKilled.to({alpha: 1}, 1000, Phaser.Easing.Quintic.Out);
+          fadeInKilled.to({alpha: 1}, 1000, Phaser.Easing.Quintic.Out);
           fadeInBossKilled.onComplete.add(setResetHandlers);
           fadeInBossKilled.start();
-          setResetHandlers();
 
         // }
 
