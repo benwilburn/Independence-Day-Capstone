@@ -1,5 +1,32 @@
 angular.module('independence-day')
-  .controller('gameplay-ctrl', function() {
+  .controller('gameplay-ctrl', function($scope, $uibModal, LeaderboardFactory) {
+
+
+    LeaderboardFactory.getLeaderboard()
+      .then(
+        (res) => {
+          $scope.scores = res.data;
+        }
+      );
+
+    $scope.animationsEnabled = true;
+
+
+    $scope.open = function (size) {
+      var modalInstance = $uibModal.open({
+        animation: $scope.animationsEnabled,
+        templateUrl: 'endOfGame/leaderboard.html',
+        controller: 'ModalInstanceCtrl',
+        size: size,
+        resolve: {
+          scores: function(){
+            return $scope.scores;
+          }
+        }
+      });
+    };
+
+
     var game = new Phaser.Game(1640, 807, Phaser.AUTO, 'independence-day', { preload: preload, create: create, update: update, render:render });
 
 
@@ -23,6 +50,7 @@ angular.module('independence-day')
     var firstWaveCompleted = false;
     var secondWaveCompleted = false;
     var bossIsDown = false;
+    var leaderboardModalOpen = false;
     var bossHitCount = 0;
     var pad;
     // var leftTriggerButton;
@@ -338,12 +366,12 @@ angular.module('independence-day')
       });
 
 
-      if (cursors.up.isDown || wKey.isDown || pad.isDown(Phaser.Gamepad.PS3XC_DPAD_UP) || pad.isDown(Phaser.Gamepad.XBOX360_DPAD_UP) || pad.axis(Phaser.Gamepad.PS3XC_STICK_RIGHT_Y) < -0.5)
+      if (cursors.up.isDown || wKey.isDown || pad.isDown(Phaser.Gamepad.PS3XC_DPAD_UP) || pad.isDown(Phaser.Gamepad.XBOX360_DPAD_UP) || pad.axis(Phaser.Gamepad.PS3XC_STICK_LEFT_Y) < -0.5)
         {
 
           player.body.thrust(400);
 
-        } else if (cursors.down.isDown || sKey.isDown || pad.isDown(Phaser.Gamepad.PS3XC_DPAD_DOWN) || pad.isDown(Phaser.Gamepad.XBOX360_DPAD_DOWN) || pad.axis(Phaser.Gamepad.PS3XC_STICK_RIGHT_Y) > 0.5) {
+        } else if (cursors.down.isDown || sKey.isDown || pad.isDown(Phaser.Gamepad.PS3XC_DPAD_DOWN) || pad.isDown(Phaser.Gamepad.XBOX360_DPAD_DOWN) || pad.axis(Phaser.Gamepad.PS3XC_STICK_LEFT_Y) > 0.5) {
 
             player.body.reverse(200);
 
@@ -353,11 +381,11 @@ angular.module('independence-day')
 
             }
 
-      if (cursors.left.isDown || aKey.isDown || pad.isDown(Phaser.Gamepad.XBOX360_DPAD_LEFT) || pad.isDown(Phaser.Gamepad.XBOX360_DPAD_LEFT) || pad.axis(Phaser.Gamepad.PS3XC_STICK_LEFT_X) < -0.1) {
+      if (cursors.left.isDown || aKey.isDown || pad.isDown(Phaser.Gamepad.XBOX360_DPAD_LEFT) || pad.isDown(Phaser.Gamepad.XBOX360_DPAD_LEFT) || pad.axis(Phaser.Gamepad.PS3XC_STICK_RIGHT_X) < -0.1) {
 
           player.body.rotateLeft(100);
 
-        } else if (cursors.right.isDown || dKey.isDown || pad.isDown(Phaser.Gamepad.PS3XC_DPAD_RIGHT) || pad.isDown(Phaser.Gamepad.XBOX360_DPAD_RIGHT) || pad.axis(Phaser.Gamepad.PS3XC_STICK_LEFT_X) > 0.1){
+        } else if (cursors.right.isDown || dKey.isDown || pad.isDown(Phaser.Gamepad.PS3XC_DPAD_RIGHT) || pad.isDown(Phaser.Gamepad.XBOX360_DPAD_RIGHT) || pad.axis(Phaser.Gamepad.PS3XC_STICK_RIGHT_X) > 0.1){
 
             player.body.rotateRight(100);
 
@@ -401,36 +429,41 @@ angular.module('independence-day')
         if(enemy.healthPoints <= 0){
 
             bossIsDown = true;
+            modalOpen = false;
 
         }
 
       });
 
-      // wave over
-      if(bossIsDown){
+      // console.log('alive?', player.alive, 'boss?', bossIsDown);
 
+      // wave over
+      if(player.alive && bossIsDown && !leaderboardModalOpen){
+
+        leaderboardModalOpen = true;
         // alert('you win');
         // if (player.alive && gameOver.visible === false) {
 
-          gameOver.visible = true;
-          console.log('gameOver', gameOver);
-          var fadeInBossKilled = game.add.tween(gameOver);
-          console.log('fadeInGameOver', fadeInBossKilled);
-          fadeInKilled.to({alpha: 1}, 1000, Phaser.Easing.Quintic.Out);
-          fadeInBossKilled.onComplete.add(setResetHandlers);
-          fadeInBossKilled.start();
-
+          // gameOver.visible = true;
+          // console.log('gameOver', gameOver);
+          // var fadeInBossKilled = game.add.tween(gameOver);
+          // console.log('fadeInGameOver', fadeInBossKilled);
+          // fadeInBossKilled.to({alpha: 1}, 1000, Phaser.Easing.Quintic.Out);
+          // fadeInBossKilled.onComplete.add(setResetHandlers);
+          // fadeInBossKilled.start();
+          // LeaderboardFactory.postToLeaderboard(currentUser, game.time.now);
+          $scope.open('large');
         // }
 
       } else if(enemyCounter <= 0 && secondWaveCompleted){
 
-        launchWave(10, 3, 1);
+        launchWave(0, 0, 1);
         waveLaunched = false;
 
 
       } else if(enemyCounter <= 0 && firstWaveCompleted){
 
-        launchWave(20, 5, 0);
+        launchWave(1, 0, 0);
         waveLaunched = false;
         secondWaveCompleted = true;
 
@@ -438,8 +471,6 @@ angular.module('independence-day')
 
         waveLaunched = false;
         firstWaveCompleted = true;
-
-      } else {
 
       }
 
@@ -478,8 +509,8 @@ angular.module('independence-day')
       waveLaunched = true;
 
       // if argument exists use it... if not use number
-      pawns = pawns ? pawns : 15;
-      destroyers = destroyers ? destroyers : 2;
+      pawns = pawns ? pawns : 1;
+      destroyers = destroyers ? destroyers : 0;
       boss = boss ? boss : 0;
 
       for(var i = 0; i < pawns; i++){
@@ -546,7 +577,7 @@ angular.module('independence-day')
           console.log('boss health', enemy.sprite.healthPoints);
 
           if(bossHitCount % 30 === 0){
-            enemy.reset(game.rnd.integerInRange(0, game.world.width), game.rnd.integerInRange(0, game.world.height));
+            enemy.reset(game.rnd.integerInRange(202, game.world.width - 202), game.rnd.integerInRange(202, game.world.height - 202));
             console.log('boss health', enemy.sprite.healthPoints);
           }
 
@@ -624,7 +655,7 @@ angular.module('independence-day')
       if(enemy) {
         enemy.hasHit = false;
         enemy.isHit = false;
-        enemy.healthPoints = 2000;
+        enemy.healthPoints = 10;
         enemy.engaged = true;
         enemy.reset(game.rnd.integerInRange(0, game.world.width), game.rnd.integerInRange(0, game.world.height));
       }

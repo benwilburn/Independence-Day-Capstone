@@ -10,17 +10,27 @@ angular.module('independence-day')
         $http.get(`${FIREBASE_URL}/auth.json`)
         .then((res) => {
           users = res.data;
-          console.log(users);
+          // console.log('users', users);
           return users;
         })
         .then((users) => {
+          // console.log('users', users);
           for(var key in users) {
-            if(users[key].uid === user.id) {
-              currentUser = users[key];
+            var currUser = users[key];
+            console.log('users[key]', users[key]);
+            console.log('users', users)
+            // console.log('key.username', key.username);
+            // console.log('currUser.username', currUser.username);
+            // for(var info in currUser){
+            //   // console.log('key', key);
+            //   console.log('info', currUser[info]);
+            if(currUser.uid === users[key].uid) {
+              currentUser = users[key].username;
               console.log('currentUser: ', currentUser);
+              return currentUser;
             }
           }
-        });
+        })
       }
     });
 
@@ -43,9 +53,9 @@ angular.module('independence-day')
 
       getUser: function(param) {
         if (param) {
-          return currentUser[param];
+          return $scope.currentUser[param];
         } else {
-          return currentUser;
+          return $scope.currentUser;
         }
       },
 

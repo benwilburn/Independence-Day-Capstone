@@ -10,5 +10,10 @@ angular.module('independence-day')
     templateUrl: 'game/game.html',
     controller: 'gameplay-ctrl',
     controllerAs: 'gameplay',
-  });
+  })
+  // .when('/leaderboards', {
+  //   templateUrl: 'endOfGame/leaderboard.html',
+  //   controller: 'leaderboard-ctrl',
+  //   controllerAs: 'leaderboard',
+  // })
 });
