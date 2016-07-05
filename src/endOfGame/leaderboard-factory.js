@@ -2,7 +2,7 @@ angular.module('independence-day')
   .factory('LeaderboardFactory', function($http, FIREBASE_URL) {
     return {
       getLeaderboard: function() {
-        return $http.get(`${FIREBASE_URL}/leaderboard.json`)
+        return $http.get(`${FIREBASE_URL}/leaderboard/level1.json`)
           .then((res) => {
             leaderboard = res;
             console.log('leaderboard', leaderboard);
@@ -10,11 +10,12 @@ angular.module('independence-day')
           });
       },
 
-      postToLeaderboard: function() {
-        return $http.post(`${FIREBASE_URL}/leaderboard.json`)
-          .then((res) => {
-            console.log(res);
-          });
+      postToLevel1Leaderboard: function(currentUser, time) {
+
+        return $http.post(`${FIREBASE_URL}/leaderboard/level1.json`, {
+          player: currentUser,
+          timeCompleted: time
+        });
       }
     };
   });

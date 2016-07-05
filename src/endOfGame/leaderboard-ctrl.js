@@ -1,7 +1,11 @@
 angular.module('independence-day')
-  .controller('ModalInstanceCtrl', function($scope, $uibModalInstance, scores) {
+  .controller('ModalInstanceCtrl', function($scope, $uibModalInstance, scores, level1ScoresArray, currentCompletedTime) {
 
     $scope.scores = scores;
+
+    $scope.level1ScoresArray = level1ScoresArray;
+
+    $scope.currentCompletedTime = currentCompletedTime;
 
     $scope.ok = function() {
       $uibModalInstance.close();
@@ -10,6 +14,4 @@ angular.module('independence-day')
     $scope.cancel = function() {
       $uibModalInstance.dismiss('cancel');
     };
-
-
   })
