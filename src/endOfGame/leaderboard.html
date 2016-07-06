@@ -6,11 +6,26 @@
   <p>{{currentCompletedTime}}</p>
   <h3>Scores from Array</h3>
   <div>
-    <ul>
-      <li ng-repeat='object in level1ScoresArray | orderBy:"timeCompleted"'>
-        <p>{{object.player}}, {{object.timeCompleted}}</p>
-      </li>
-    </ul>
+    <table class="table table-striped">
+      <tbody>
+      <tr>
+      <th>#</th>
+      <th>Player</th>
+      <th>Time</th>
+      </tr>
+      <tr ng-repeat='object in level1ScoresArray | orderBy:"timeCompleted"'>
+      <td>
+        1
+      </td>
+      <td>
+        {{object.player}}
+      </td>
+      <td>
+        {{object.timeCompleted}}
+      </td>
+      </tr>
+      </tbody>
+    </table>
   </div>
 </div>
 <div class='modal-footer'>
