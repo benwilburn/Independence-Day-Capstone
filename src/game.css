@@ -1,4 +1,11 @@
 canvas {
-  padding-top: 30px;
-  padding-left: 60px;
+  margin: 0, auto;
+}
+
+th{
+  font-size: 24px;
+}
+
+td {
+  font-size: 24px;
 }
