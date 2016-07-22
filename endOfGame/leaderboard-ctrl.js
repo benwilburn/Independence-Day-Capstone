@@ -1,0 +1,17 @@
+angular.module('independence-day')
+  .controller('ModalInstanceCtrl', function($scope, $uibModalInstance, scores, level1ScoresArray, currentCompletedTime) {
+
+    $scope.scores = scores;
+
+    $scope.level1ScoresArray = level1ScoresArray;
+
+    $scope.currentCompletedTime = currentCompletedTime;
+
+    $scope.ok = function() {
+      $uibModalInstance.close();
+    };
+
+    $scope.cancel = function() {
+      $uibModalInstance.dismiss('cancel');
+    };
+  })
