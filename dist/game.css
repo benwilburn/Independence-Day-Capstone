@@ -9,3 +9,12 @@ th{
 td {
   font-size: 24px;
 }
+
+body {
+    background: url(assets/images/spaceshooter/Backgrounds/starfield.png) repeat center center fixed;
+/*     -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover; */
+}
+
