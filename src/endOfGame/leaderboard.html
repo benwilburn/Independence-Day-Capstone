@@ -2,8 +2,14 @@
   <h3 class='modal-title'>Leaderboards</h3>
 </div>
 <div class="modal-body">
-  <h2>Your Time was: </h2>
-  <p>{{currentCompletedTime}}</p>
+  <div ng-show='currentCompletedTime'>
+    <h2>Your Time was: </h2>
+    <p>{{currentCompletedTime}}</p>
+  </div>
+  <div ng-hide='currentCompletedTime'>
+    <h2>Current Time: </h2>
+    <p>{{currentTime}}</p>
+  </div>
   <h3>Scores from Array</h3>
   <div>
     <table class="table table-striped">
