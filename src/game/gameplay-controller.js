@@ -128,7 +128,7 @@ angular.module('independence-day')
 
         function preload() {
 
-            // game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+            game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
             game.load.image('background', 'assets/images/spaceshooter/Backgrounds/starfield.png');
             game.load.image('player', 'assets/images/spaceshooter/PNG/playerShip1_blue.png');
             game.load.physics('player_physics', 'assets/playerShipBlue_physics.json');
@@ -180,11 +180,11 @@ angular.module('independence-day')
           game.physics.p2.restitution = 1;
 
           //creating the logout button
-          logOutButton = game.add.button(game.camera.width - 1675, game.camera.height - 100, 'quit-game', logOut);
+          logOutButton = game.add.button(game.camera.width / 75, game.camera.height / 1.1, 'quit-game', logOut);
           logOutButton.fixedToCamera = true;
 
           // see leaderboard button
-          leaderboardButton = game.add.button(game.camera.width - 1615, game.camera.height - 100, 'leaderboard', seeLeaderboard);
+          leaderboardButton = game.add.button(game.camera.width / 20, game.camera.height / 1.1, 'leaderboard', seeLeaderboard);
           leaderboardButton.fixedToCamera = true;
 
           // player collision group
@@ -529,7 +529,7 @@ angular.module('independence-day')
 
           var startingPlayerHealth = 3000;
           var currentPlayerHealth = player.health;
-          health = game.add.text(game.camera.width - 250, 10, 'Health: ' + parseFloat((currentPlayerHealth / startingPlayerHealth) * 100).toFixed(0) +'%', { font: '30px Arial', fill: '#fff' });
+          health = game.add.text(game.camera.width / 1.1, 10, 'Health: ' + parseFloat((currentPlayerHealth / startingPlayerHealth) * 100).toFixed(0) +'%', { font: '1.75em Arial', fill: '#fff' });
           health.fixedToCamera = true;
           health.render = function () {
 
@@ -547,7 +547,7 @@ angular.module('independence-day')
           // Sheilds stat
           var startingPlayerShields = 1000;
           var currentPlayerShields = shields.hitPoints;
-          shieldsText = game.add.text(game.camera.width - 450, 10, 'Shields: ' + parseFloat((currentPlayerShields / startingPlayerShields) * 100).toFixed(0) +'%', { font: '30px Arial', fill: '#fff' });
+          shieldsText = game.add.text(game.camera.width / 1.25, 10, 'Shields: ' + parseFloat((currentPlayerShields / startingPlayerShields) * 100).toFixed(0) +'%', { font: '1.75em Arial', fill: '#fff' });
           shieldsText.fixedToCamera = true;
 
           shieldsText.render = function () {
@@ -575,7 +575,7 @@ angular.module('independence-day')
           youWinText.fixedToCamera = true;
 
           // enemy counter
-          enemyCounterDisplay = game.add.text(game.camera.width -685, 10, 'Enemies left: ' + enemyCounter, { font: '30px Arial', fill: '#fff'} );
+          enemyCounterDisplay = game.add.text(game.camera.width / 1.46, 10, 'Enemies left: ' + enemyCounter, { font: '1.75em Arial', fill: '#fff'} );
           enemyCounterDisplay.fixedToCamera = true;
 
           enemyCounterDisplay.render = function(){
@@ -601,7 +601,7 @@ angular.module('independence-day')
 
           // game timer
           gameTimer = '0 min 0.0 sec';
-          gameTimerDisplay = game.add.text(game.camera.width - 1675, 10, `${currentUser.username}'s time: ${gameTimer}`, {font: '30px Arial', fill: '#fff'});
+          gameTimerDisplay = game.add.text(game.camera.width / 75, 10, `${currentUser.username}'s time: ${gameTimer}`, {font: '1.75em Arial', fill: '#fff'});
           gameTimerDisplay.fixedToCamera = true;
           gameTimerDisplay.visible = true;
           gameTimerDisplay.render = function() {
@@ -762,21 +762,22 @@ angular.module('independence-day')
 
             youWinText.visible = true;
             LeaderboardFactory.postToLevel1Leaderboard($scope.currentUserUsername, timeCompletedFinal)
-              .then( () => {
-                LeaderboardFactory.getLeaderboard()
-                .then((res) => {
-                  $scope.scores = res.data;
-                  for(var fbKey in $scope.scores){
-                    $scope.level1ScoresArray.push($scope.scores[fbKey]);
-                  }
-                  return $scope.level1ScoresArray;
+            .then( () => {
+              LeaderboardFactory.getLeaderboard()
+              .then((res) => {
+                $scope.scores = res.data;
+                for(var fbKey in $scope.scores){
+                  $scope.level1ScoresArray.push($scope.scores[fbKey]);
+                }
+                return $scope.level1ScoresArray;
 
-                  })
-                .then(() => {
-                    $scope.open('lg');
-                  });
-              });
-            } else if(enemyCounter <= 0 && secondWaveCompleted && !waveLaunched){
+                })
+              .then(() => {
+                  $scope.open('lg');
+                });
+            });
+
+          } else if(enemyCounter <= 0 && secondWaveCompleted && !waveLaunched){
 
             showBossWaveText();
             setTimeout(hideBossWaveText, 4500);
