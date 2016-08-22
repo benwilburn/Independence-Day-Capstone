@@ -1,0 +1,21 @@
+{ 
+    
+    "enemyBlack1": [
+        
+        {
+            "density": 2, "friction": 0, "bounce": 0, 
+            "filter": { "categoryBits": 1, "maskBits": 65535 },
+            "shape": [   9, 7  ,  8, 20  ,  3, 23  ,  0, 13  ,  7, -3  ]
+        } ,
+        {
+            "density": 2, "friction": 0, "bounce": 0, 
+            "filter": { "categoryBits": 1, "maskBits": 65535 },
+            "shape": [   23.5, 12  ,  21, 22  ,  16, 20  ,  15, 7  ,  16, -3  ]
+        } ,
+        {
+            "density": 2, "friction": 0, "bounce": 0, 
+            "filter": { "categoryBits": 1, "maskBits": 65535 },
+            "shape": [   8, 20  ,  9, 7  ,  15, 7  ,  16, 20  ]
+        }
+    ]
+}

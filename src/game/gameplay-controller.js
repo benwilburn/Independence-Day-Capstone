@@ -128,7 +128,7 @@ angular.module('independence-day')
 
         function preload() {
 
-            game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+            // game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
             game.load.image('background', 'assets/images/spaceshooter/Backgrounds/starfield.png');
             game.load.image('player', 'assets/images/spaceshooter/PNG/playerShip1_blue.png');
             game.load.physics('player_physics', 'assets/playerShipBlue_physics.json');
