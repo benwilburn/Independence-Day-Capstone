@@ -28,6 +28,7 @@ angular.module('independence-day')
           $scope.animationsEnabled = true;
 
           $scope.signOutUser = function () {
+
             logOut();
 
           };
@@ -263,6 +264,7 @@ angular.module('independence-day')
             enemy.body.collides(enemyCollisionGroup);
             enemy.body.collides(asteroidCollisionGroup);
             enemy.body.collides(playerShieldCollisionGroup);
+            enemy.body.collides(powerupsCollisionGroup);
             enemy.lastShot = 0;
             enemy.bullets = 1;
 
@@ -292,6 +294,7 @@ angular.module('independence-day')
             enemy.body.collides(playerCollisionGroup);
             enemy.body.collides(enemyCollisionGroup);
             enemy.body.collides(asteroidCollisionGroup);
+            enemy.body.collides(powerupsCollisionGroup);
             enemy.lastShot = 0;
             enemy.bullets = 1;
 
@@ -314,10 +317,11 @@ angular.module('independence-day')
             enemy.body.setCollisionGroup(bossCollisionGroup);
             enemy.body.collides(enemyCollisionGroup);
             enemy.body.collides(playerBulletCollisionGroup, hitEnemy);
-            enemy.lastShot = 0;
-            enemy.bullets = 1;
             enemy.body.collides(playerCollisionGroup);
             enemy.body.collides(asteroidCollisionGroup);
+            enemy.body.collides(powerupsCollisionGroup);
+            enemy.lastShot = 0;
+            enemy.bullets = 1;
 
           });
           game.time.events.add(1000, showWaveText);
@@ -495,6 +499,7 @@ angular.module('independence-day')
             powerup.body.setCollisionGroup(powerupsCollisionGroup);
             powerup.body.collides(playerCollisionGroup, addHealthToPlayer);
             powerup.body.collides(asteroidCollisionGroup);
+            powerup.body.collides(enemyCollisionGroup);
 
           });
 
@@ -573,6 +578,11 @@ angular.module('independence-day')
           youWinText.anchor.setTo(0.5, 0.5);
           youWinText.visible = false;
           youWinText.fixedToCamera = true;
+
+          clickToRestart = game.add.text(game.camera.width / 2, game.camera.height / 1.5, 'Click to Restart', {font: '45px Arial', fill: '#fff'});
+          clickToRestart.anchor.setTo(0.5, 0.5);
+          clickToRestart.visible = false;
+          clickToRestart.fixedToCamera = true;
 
           // enemy counter
           enemyCounterDisplay = game.add.text(game.camera.width / 1.46, 10, 'Enemies left: ' + enemyCounter, { font: '1.75em Arial', fill: '#fff'} );
@@ -725,10 +735,8 @@ angular.module('independence-day')
           if (!player.alive && gameOver.visible === false) {
 
             gameOver.visible = true;
-            var fadeInGameOver = game.add.tween(gameOver);
-            fadeInGameOver.to({alpha: 1}, 1000, Phaser.Easing.Quintic.Out);
-            fadeInGameOver.onComplete.add(setResetHandlers);
-            fadeInGameOver.start();
+            clickToRestart.visible = true;
+            game.input.onDown.addOnce(restart, self);
 
           }
 
@@ -761,6 +769,13 @@ angular.module('independence-day')
             $scope.currentCompletedTime = timeCompletedFinal;
 
             youWinText.visible = true;
+            clickToRestart.visible = true;
+            if (youWinText.visible = true && !leaderboardModalOpen){
+
+              game.input.onDown.addOnce(restart, self);
+
+            }
+
             LeaderboardFactory.postToLevel1Leaderboard($scope.currentUserUsername, timeCompletedFinal)
             .then( () => {
               LeaderboardFactory.getLeaderboard()
@@ -977,6 +992,8 @@ angular.module('independence-day')
 
           //  Hide the text
           gameOver.visible = false;
+          youWinText.visible = false;
+          clickToRestart.visible = false;
 
         }
 
