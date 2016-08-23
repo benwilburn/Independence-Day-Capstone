@@ -1,5 +1,8 @@
 angular.module('independence-day')
   .controller('gameplay-ctrl', function($location, $timeout, $http, $scope, $uibModal, LeaderboardFactory, AuthFactory, FIREBASE_URL) {
+          var date = new Date()
+          var dateStr = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate() + " " +  date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
+          console.log("I AM THE GAME YAAAAAAAY " + dateStr);
 
           var user = firebase.auth().currentUser;
           if (!user) {
@@ -324,10 +327,14 @@ angular.module('independence-day')
             enemy.bullets = 1;
 
           });
+
+
           game.time.events.add(1000, showWaveText);
           game.time.events.add(4500, hideWaveText);
           game.time.events.add(4500, startTimer);
           game.time.events.add(4500, launchWave);
+
+
 
           // Pawn Bullets
           pawnBullets = game.add.group();
@@ -589,7 +596,7 @@ angular.module('independence-day')
           enemyCounterDisplay.fixedToCamera = true;
 
           enemyCounterDisplay.render = function(){
-            enemyCounterDisplay.text = 'Enemies Left: ' + Math.max(enemyCounter, 0);
+            enemyCounterDisplay.text = 'Enemies Left: ' + enemyCounter;
           };
 
           // wave number text
@@ -599,7 +606,7 @@ angular.module('independence-day')
           waveText.fixedToCamera = true;
           waveText.render = function() {
 
-            waveText.text = 'Wave ' + Math.max(waveNumber, 0);
+            waveText.text = 'Wave ' + waveNumber;
 
           };
 
@@ -625,7 +632,7 @@ angular.module('independence-day')
 
           };
 
-          gamePausedDisplay = game.add.text(game.camera.width - 1200, game.camera.height / 2, `Game Paused. Click Game To Continue`, {font: '50px Comic Sans', fill: '#fff'});
+          gamePausedDisplay = game.add.text((game.camera.width / 2) - 200, game.camera.height / 2, `Game Paused. Click Game To Continue`, {font: '3em Comic Sans', fill: '#fff'});
           gamePausedDisplay.fixedToCamera = true;
           gamePausedDisplay.visible = false;
 
@@ -760,7 +767,7 @@ angular.module('independence-day')
 
             gameTimerDisplay.visible = false;
             var timeCompleted = game.time.now - $scope.gameStartTime;
-            removeTimer();
+            gameTimer = timeCompleted;
             var timeCompletedInSeconds = timeCompleted / 1000;
             var minutes = parseInt(timeCompletedInSeconds / 60) % 60;
             var seconds = parseFloat(timeCompletedInSeconds % 60).toFixed(3);
@@ -770,11 +777,8 @@ angular.module('independence-day')
 
             youWinText.visible = true;
             clickToRestart.visible = true;
-            if (youWinText.visible = true && !leaderboardModalOpen){
+            game.input.onDown.addOnce(restart, self);
 
-              game.input.onDown.addOnce(restart, self);
-
-            }
 
             LeaderboardFactory.postToLevel1Leaderboard($scope.currentUserUsername, timeCompletedFinal)
             .then( () => {
@@ -849,6 +853,8 @@ angular.module('independence-day')
 
         function launchWave (pawns, destroyers, boss, smallBrownAsteroids, medGreyAsteroids, bigBrownAsteroids, moreHealth) {
 
+          enemyCounter = 0;
+          enemyCounterDisplay.render();
           waveLaunched = true;
 
           // if argument exists use it... if not use number
@@ -970,24 +976,33 @@ angular.module('independence-day')
           pawns.callAll('kill');
           destroyers.callAll('kill');
           boss.callAll('kill');
-          score = 0;
-          // gameScore.render();
+
           enemyCounter = 0;
           enemyCounterDisplay.render();
-          waveLaunched = false;
+
+          waveNumber = 1;
+          waveText.render();
+
+          gameTimer = '0 min 0.0 sec'
+          $scope.gameStartTime = game.time.now
+          gameTimerDisplay.render();
+          watchIsOn = false;
+
           firstWaveCompleted = false;
           secondWaveCompleted = false;
           bossIsDown = false;
           bossHitCount = 0;
+
           game.time.events.add(1000, showWaveText);
+          game.time.events.add(4500, startTimer);
           game.time.events.add(4500, hideWaveText);
           game.time.events.add(5000, launchWave);
 
           //  Revive the player
           player.revive();
-          player.shields = 1000;
-          player.health = 3000;
+          shields.hitPoints = 1000;
           shieldsText.render();
+          player.health = 3000;
           health.render();
 
           //  Hide the text
@@ -1311,6 +1326,7 @@ angular.module('independence-day')
         function startTimer(){
           watchIsOn = true;
           $scope.gameStartTime = game.time.now;
+          gameTimerDisplay.render();
         }
 
         function removeTimer(){
