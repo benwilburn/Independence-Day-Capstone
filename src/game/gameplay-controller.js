@@ -63,7 +63,10 @@ angular.module('independence-day')
 
           $scope.currentUserUsername = currentUser.username;
 
-        var game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.AUTO, 'independence-day', { preload: preload, create: create, update: update, render:render });
+        var game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.AUTO, 'independence-day');
+        var gameState = { preload: preload, create: create, update: update, render:render };
+        game.state.add('game', gameState);
+        game.state.start('game');
 
         // General Variables
         var starfield;
@@ -969,48 +972,51 @@ angular.module('independence-day')
             }
         }
 
-
-        function restart () {
-
-          //  Reset the enemies
-          pawns.callAll('kill');
-          destroyers.callAll('kill');
-          boss.callAll('kill');
-
-          enemyCounter = 0;
-          enemyCounterDisplay.render();
-
-          waveNumber = 1;
-          waveText.render();
-
-          gameTimer = '0 min 0.0 sec'
-          $scope.gameStartTime = game.time.now
-          gameTimerDisplay.render();
-          watchIsOn = false;
-
-          firstWaveCompleted = false;
-          secondWaveCompleted = false;
-          bossIsDown = false;
-          bossHitCount = 0;
-
-          game.time.events.add(1000, showWaveText);
-          game.time.events.add(4500, startTimer);
-          game.time.events.add(4500, hideWaveText);
-          game.time.events.add(5000, launchWave);
-
-          //  Revive the player
-          player.revive();
-          shields.hitPoints = 1000;
-          shieldsText.render();
-          player.health = 3000;
-          health.render();
-
-          //  Hide the text
-          gameOver.visible = false;
-          youWinText.visible = false;
-          clickToRestart.visible = false;
-
+        function restart(){
+          game.state.clearCurrentState();
+          game.state.start('game', true, true);
         }
+        // function restart () {
+        //
+        //   //  Reset the enemies
+        //   pawns.callAll('kill');
+        //   destroyers.callAll('kill');
+        //   boss.callAll('kill');
+        //
+        //   enemyCounter = 0;
+        //   enemyCounterDisplay.render();
+        //
+        //   waveNumber = 1;
+        //   waveText.render();
+        //
+        //   gameTimer = '0 min 0.0 sec'
+        //   $scope.gameStartTime = game.time.now
+        //   gameTimerDisplay.render();
+        //   watchIsOn = false;
+        //
+        //   firstWaveCompleted = false;
+        //   secondWaveCompleted = false;
+        //   bossIsDown = false;
+        //   bossHitCount = 0;
+        //
+        //   game.time.events.add(1000, showWaveText);
+        //   game.time.events.add(4500, startTimer);
+        //   game.time.events.add(4500, hideWaveText);
+        //   game.time.events.add(5000, launchWave);
+        //
+        //   //  Revive the player
+        //   player.revive();
+        //   shields.hitPoints = 1000;
+        //   shieldsText.render();
+        //   player.health = 3000;
+        //   health.render();
+        //
+        //   //  Hide the text
+        //   gameOver.visible = false;
+        //   youWinText.visible = false;
+        //   clickToRestart.visible = false;
+        //
+        // }
 
         function shipCollide(player, enemy) {
 
