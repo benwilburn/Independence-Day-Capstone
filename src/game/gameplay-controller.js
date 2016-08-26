@@ -161,6 +161,11 @@ angular.module('independence-day')
             game.load.image('damagePowerUp', 'assets/images/spaceshooter/PNG/Power-ups/powerupBlue_bolt.png');
             game.load.image('quit-game', 'assets/gameicons/PNG/White/1x/door.png');
             game.load.image('leaderboard', 'assets/gameicons/PNG/White/1x/leaderboardsComplex.png');
+            game.load.audio('player_laser', 'assets/audio/SoundEffects/lasers/player_laser.ogg');
+            game.load.audio('player_laser', 'assets/audio/SoundEffects/lasers/pawn_laser.ogg');
+            game.load.audio('player_laser', 'assets/audio/SoundEffects/lasers/destroyer_laser.ogg');
+            game.load.audio('player_laser', 'assets/audio/SoundEffects/lasers/boss_laser.ogg');
+            game.load.audio('player_laser', 'assets/audio/SoundEffects/explosion/explosion.ogg');
 
         }
 
