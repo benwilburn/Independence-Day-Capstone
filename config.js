@@ -11,9 +11,14 @@ angular.module('independence-day')
     controller: 'gameplay-ctrl',
     controllerAs: 'gameplay',
   })
-  // .when('/leaderboards', {
-  //   templateUrl: 'endOfGame/leaderboard.html',
-  //   controller: 'leaderboard-ctrl',
-  //   controllerAs: 'leaderboard',
-  // })
+  .when('/register', {
+    templateUrl: 'auth/register.html',
+    controller: 'auth-ctrl',
+    controllerAs: 'auth',
+  })
+  .when('/controls', {
+    templateUrl: 'controls/controls.html',
+    controller: 'auth-ctrl',
+    controllerAs: 'auth',
+  })
 });

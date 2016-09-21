@@ -1,68 +1,102 @@
 angular.module('independence-day')
-  .controller('gameplay-ctrl', function($location, $timeout, $scope, $uibModal, LeaderboardFactory, AuthFactory) {
+  .controller('gameplay-ctrl', function($location, $timeout, $http, $scope, $uibModal, LeaderboardFactory, AuthFactory, FIREBASE_URL) {
+          var date = new Date()
+          var dateStr = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate() + " " +  date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
+          console.log("I AM THE GAME YAAAAAAAY " + dateStr);
 
-    firebase.auth().onAuthStateChanged((user) => {
-      if(user){
-          // var canvas = document.getElementsByTagName('canvas');
-          // console.log('canvas', canvas.parentNode);
+          var user = firebase.auth().currentUser;
+          if (!user) {
+            firebase.auth().signOut();
+            $location.path('/');
+            $timeout();
+          } else {
 
+          $scope.level1ScoresArray = [];
 
-        var currentPlayer = '';
-
-        var currentUser = user.uid;
-        $scope.currentUserUsername = '';
-        $scope.level1ScoresArray = [];
-
-        firebase.database().ref('/auth').once('value', function (arg) {
-
-            var authObject = arg.val();
-
-            for(var authObjectUser in authObject){
-              var userObject = authObject[authObjectUser];
-              // console.log('authObjectUser', userObject.uid);
-              if(currentUser === userObject.uid){
-                $scope.currentUserUsername = userObject.username;
-                currentPlayer = $scope.currentUserUsername;
-                // $timeout();
-                console.log('scope.currentUserUsername', $scope.currentUserUsername);
-
+          $http.get(`${FIREBASE_URL}/auth.json`)
+            .then((res) => {
+              var users = res.data;
+              return users;
+            })
+            .then((users) => {
+              for(var key in users) {
+                // var currUser = users[key];
+                if(user.uid === users[key].uid) {
+                  var userInfo = users[key];
+                  return userInfo;
+                }
               }
-            }
+            }).then((currentUser) => {
 
+          $scope.animationsEnabled = true;
 
+          $scope.signOutUser = function () {
 
-        $scope.animationsEnabled = true;
-
-        $scope.signOutUser = function () {
-          game.input.keyboard.clearCaptures();
             logOut();
 
-        };
+          };
 
-        $scope.open = function (size) {
-          var modalInstance = $uibModal.open({
-            animation: $scope.animationsEnabled,
-            templateUrl: 'endOfGame/leaderboard.html',
-            controller: 'ModalInstanceCtrl',
-            size: size,
-            resolve: {
-              scores: function() {
-                return $scope.scores;
-              },
-              level1ScoresArray: function() {
-                return $scope.level1ScoresArray;
-              },
-              currentCompletedTime: function() {
-                return $scope.currentCompletedTime;
+          $scope.open = function (size) {
+            var modalInstance = $uibModal.open({
+              animation: $scope.animationsEnabled,
+              templateUrl: 'endOfGame/leaderboard.html',
+              controller: 'ModalInstanceCtrl',
+              size: size,
+              resolve: {
+                scores: function() {
+                  return $scope.scores;
+                },
+                level1ScoresArray: function() {
+                  return $scope.level1ScoresArray;
+                },
+                currentCompletedTime: function() {
+                  return $scope.currentCompletedTime;
+                },
+
+                currentTime: function() {
+                  return $scope.currentTime;
+                }
+
               }
+            });
+          };
 
+          $scope.currentUserUsername = currentUser.username;
+
+        var game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.AUTO, 'independence-day');
+        var gameState = { preload: preload, create: create, update: update, render:render };
+        var overState = {
+          preload: function () {
+            game.load.image('background', 'assets/images/spaceshooter/Backgrounds/starfield.png');
+          },
+          create: function () {
+            game.add.tileSprite(0,0, 2500, 2500, 'background');
+            this.spacebar = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+            var label = game.add.text(width / 2, height / 2, 'YOU WIN \nPress SPACEBAR to restart', {font: '22px Lucida Console', fill: '#ffffff', align: 'center'});
+          },
+          update: function () {
+            gameTimer = '0 min 0.0 sec';
+            if(this.spacebar.isDown){
+              game.state.start('game');
+            }
           }
-        });
-      };
-
-
-        var game = new Phaser.Game(1640, 807, Phaser.AUTO, 'independence-day', { preload: preload, create: create, update: update, render:render });
-
+        }
+        game.state.add('game', gameState, false);
+        game.state.add('Over', overState, false);
+        // game.Over.prototype = {
+        //   create: function() {
+        //     game.add.tileSprite(0,0, 2500, 2500, 'background')
+        //     this.spacebar = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+        //     var label = game.add.text(width / 2, height / 2, 'YOU WIN \nPress SPACEBAR to restart', {font: '22px Lucida Console', fill: '#ffffff', align: 'center'});
+        //   },
+        //   update: function() {
+        //     gameTimer = '0 min 0.0 sec';
+        //     if(this.spacebar.isDown){
+        //       game.state.start('game');
+        //     }
+        //   }
+        // }
+        game.state.start('game');
 
         // General Variables
         var starfield;
@@ -83,9 +117,7 @@ angular.module('independence-day')
         var waveText;
         var bossWaveText;
         var score = 0;
-        // var health;
         var shields;
-        // var shieldsText;
         var enemyCounter = 0;
         var enemyCounterDisplay;
         var waveLaunched = false;
@@ -102,8 +134,6 @@ angular.module('independence-day')
         var bossWaveNotification = 'Boss Wave!!';
         var watchIsOn = false;
         var leaderboardBuilt = false;
-        // var leftTriggerButton;
-        // var rightTriggerButton = pad.getButton(Phaser.Gamepad.PS3XC_R2);
         var leftStickX;
         var leftStickY;
         var rightStickX;
@@ -117,7 +147,9 @@ angular.module('independence-day')
         var healthPowerup;
         var damagePowerup;
         var logOutButton;
-
+        var leaderboardButton;
+        var gamePausedDisplay;
+        var currentTime;
 
         // WASD Variables
         var wKey;
@@ -131,11 +163,6 @@ angular.module('independence-day')
         var phaserTime = 0;
         var fireButton;
 
-        // var ACCELERATION = 200;
-        // var DRAG = 50;
-        // var MAXSPEED = 300;
-
-
         function preload() {
 
             game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
@@ -143,10 +170,8 @@ angular.module('independence-day')
             game.load.image('player', 'assets/images/spaceshooter/PNG/playerShip1_blue.png');
             game.load.physics('player_physics', 'assets/playerShipBlue_physics.json');
             game.load.image('phaser', 'assets/images/spaceshooter/PNG/Lasers/laserGreen16.png');
-            // game.load.physics('phaser_physics', 'assets/phaser_physics.json');
             game.load.image('pawns', 'assets/images/spaceshooter/PNG/Enemies/enemyBlack1.png');
             game.load.physics('pawn_physics', 'assets/pawn_physics.json');
-            // game.load.image('destroyers', 'assets/images/spaceshooter/PNG/redshipr.png');
             game.load.image('pawnBullet', 'assets/images/spaceshooter/PNG/Lasers/laserRed15.png');
             game.load.image('destroyerBullet', 'assets/images/spaceshooter/PNG/Lasers/laserRed16.png');
             game.load.spritesheet('explosion', 'assets/images/explosions.png', 128, 128);
@@ -164,12 +189,17 @@ angular.module('independence-day')
             game.load.image('largeGreyAsteroid', 'assets/images/spaceshooter/PNG/Meteors/meteorGrey_big1.png');
             game.load.image('healthPowerUp', 'assets/images/spaceshooter/PNG/Power-ups/pill_green.png');
             game.load.image('damagePowerUp', 'assets/images/spaceshooter/PNG/Power-ups/powerupBlue_bolt.png');
+            game.load.image('quit-game', 'assets/gameicons/PNG/White/1x/door.png');
+            game.load.image('leaderboard', 'assets/gameicons/PNG/White/1x/leaderboardsComplex.png');
+            game.load.audio('player_laser', 'assets/audio/SoundEffects/lasers/player_laser.ogg');
+            game.load.audio('pawn_laser', 'assets/audio/SoundEffects/lasers/pawn_laser.ogg');
+            game.load.audio('destroyer_laser', 'assets/audio/SoundEffects/lasers/destroyer_laser.ogg');
+            game.load.audio('boss_laser', 'assets/audio/SoundEffects/lasers/boss_laser.ogg');
+            game.load.audio('explosion_sound', 'assets/audio/SoundEffects/explosion/explosion.ogg');
 
         }
 
         function create() {
-
-
 
           // arcade physics system
           game.physics.startSystem(Phaser.Physics.P2JS);
@@ -178,7 +208,22 @@ angular.module('independence-day')
           game.input.gamepad.start();
 
           pad = game.input.gamepad.pad1;
-          // pad.addCallbacks(this, { onConnect: addButtons });
+
+          // adding game audio sound Effects
+          player_laser_sound = game.add.audio('player_laser');
+          player_laser_sound.allowMultiple = true;
+
+          pawn_laser_sound = game.add.audio('pawn_laser');
+          pawn_laser_sound.allowMultiple = true;
+
+          destroyer_laser_sound = game.add.audio('destroyer_laser');
+          destroyer_laser_sound.allowMultiple = true;
+
+          boss_laser_sound = game.add.audio('boss_laser');
+          boss_laser_sound.allowMultiple = true;
+
+          explosion_sound = game.add.audio('explosion_sound');
+          explosion_sound.allowMultiple = true;
 
           // setting game bounds
           game.world.setBounds(0, 0, 2500, 2500);
@@ -191,6 +236,14 @@ angular.module('independence-day')
 
           // setting restitution for sprite.alpha
           game.physics.p2.restitution = 1;
+
+          //creating the logout button
+          logOutButton = game.add.button(game.camera.width / 75, game.camera.height / 1.1, 'quit-game', logOut);
+          logOutButton.fixedToCamera = true;
+
+          // see leaderboard button
+          leaderboardButton = game.add.button(game.camera.width / 20, game.camera.height / 1.1, 'leaderboard', seeLeaderboard);
+          leaderboardButton.fixedToCamera = true;
 
           // player collision group
           var playerCollisionGroup = game.physics.p2.createCollisionGroup();
@@ -222,11 +275,9 @@ angular.module('independence-day')
           // creating player
           player = game.add.sprite(game.world.width / 2, game.world.height / 2, 'player');
           game.physics.p2.enable(player);
-          // player.shields = 60;
 
           player.health = 3000;
           player.body.damping = 0.5;
-          // player.rotation = 1.5 * Math.PI;
           player.body.collideWorldBounds = true;
           game.camera.follow(player);
           player.body.mass = 100;
@@ -270,6 +321,7 @@ angular.module('independence-day')
             enemy.body.collides(enemyCollisionGroup);
             enemy.body.collides(asteroidCollisionGroup);
             enemy.body.collides(playerShieldCollisionGroup);
+            enemy.body.collides(powerupsCollisionGroup);
             enemy.lastShot = 0;
             enemy.bullets = 1;
 
@@ -292,7 +344,6 @@ angular.module('independence-day')
             enemy.body.mass = 100;
             enemy.body.collideWorldBounds = true;
             enemy.rotation = 1.5 * Math.PI;
-            // enemy.body.setRectangleFromSprite();
             enemy.body.clearShapes();
             enemy.body.loadPolygon('destroyer_physics', 'ospaceship-main');
             enemy.body.setCollisionGroup(enemyCollisionGroup);
@@ -300,6 +351,7 @@ angular.module('independence-day')
             enemy.body.collides(playerCollisionGroup);
             enemy.body.collides(enemyCollisionGroup);
             enemy.body.collides(asteroidCollisionGroup);
+            enemy.body.collides(powerupsCollisionGroup);
             enemy.lastShot = 0;
             enemy.bullets = 1;
 
@@ -322,16 +374,21 @@ angular.module('independence-day')
             enemy.body.setCollisionGroup(bossCollisionGroup);
             enemy.body.collides(enemyCollisionGroup);
             enemy.body.collides(playerBulletCollisionGroup, hitEnemy);
-            enemy.lastShot = 0;
-            enemy.bullets = 1;
             enemy.body.collides(playerCollisionGroup);
             enemy.body.collides(asteroidCollisionGroup);
+            enemy.body.collides(powerupsCollisionGroup);
+            enemy.lastShot = 0;
+            enemy.bullets = 1;
 
           });
+
+
           game.time.events.add(1000, showWaveText);
           game.time.events.add(4500, hideWaveText);
           game.time.events.add(4500, startTimer);
           game.time.events.add(4500, launchWave);
+
+
 
           // Pawn Bullets
           pawnBullets = game.add.group();
@@ -345,8 +402,7 @@ angular.module('independence-day')
           pawnBullets.setAll('outOfBoundsKill', true);
           pawnBullets.setAll('checkWorldBounds', true);
           pawnBullets.forEach(function(bullet){
-            // enemy.body.setSize(20,20);
-            // enemy.body.setRectangle(3,3);
+
             bullet.body.mass = 1;
             bullet.body.setRectangleFromSprite();
             bullet.body.setCollisionGroup(enemyBulletCollisionGroup);
@@ -356,6 +412,7 @@ angular.module('independence-day')
             bullet.body.collideWorldBounds = false;
             bullet.body.outOfCameraBoundsKill = true;
             bullet.damageAmount = 10;
+
           });
 
           // Destroyer Bullets
@@ -370,8 +427,7 @@ angular.module('independence-day')
           destroyerBullets.setAll('outOfBoundsKill', true);
           destroyerBullets.setAll('checkWorldBounds', true);
           destroyerBullets.forEach(function(bullet){
-            // enemy.body.setSize(20,20);
-            // enemy.body.setRectangle(3,3);
+
             bullet.body.mass = 1;
             bullet.body.setRectangleFromSprite();
             bullet.body.setCollisionGroup(enemyBulletCollisionGroup);
@@ -381,6 +437,7 @@ angular.module('independence-day')
             bullet.body.collideWorldBounds = false;
             bullet.body.outOfCameraBoundsKill = true;
             bullet.damageAmount = 20;
+
           });
 
           // Boss Small Bullets
@@ -395,8 +452,7 @@ angular.module('independence-day')
           bossSmallBullets.setAll('outOfBoundsKill', true);
           bossSmallBullets.setAll('checkWorldBounds', true);
           bossSmallBullets.forEach(function(bullet){
-            // enemy.body.setSize(20,20);
-            // enemy.body.setRectangle(3,3);
+
             bullet.body.mass = 1;
             bullet.body.setRectangleFromSprite();
             bullet.body.setCollisionGroup(enemyBulletCollisionGroup);
@@ -406,6 +462,7 @@ angular.module('independence-day')
             bullet.body.collideWorldBounds = false;
             bullet.body.outOfCameraBoundsKill = true;
             bullet.damageAmount = 50;
+
           });
 
           //  Our ships bullets
@@ -439,6 +496,7 @@ angular.module('independence-day')
           smallBrownAsteroid.enableBody = true;
           smallBrownAsteroid.createMultiple(20, 'smallBrownAsteroid');
           smallBrownAsteroid.forEach(function(asteroid){
+
             asteroid.body.setCollisionGroup(asteroidCollisionGroup);
             asteroid.body.collides(playerCollisionGroup);
             asteroid.body.collides(playerBulletCollisionGroup);
@@ -446,8 +504,10 @@ angular.module('independence-day')
             asteroid.body.collides(enemyCollisionGroup);
             asteroid.body.collides(enemyBulletCollisionGroup);
             asteroid.body.collides(bossCollisionGroup);
+            asteroid.body.collides(powerupsCollisionGroup);
             asteroid.body.collides(bossCollisionGroup);
             asteroid.body.mass = 300;
+
           });
 
           // med grey asteroid
@@ -456,6 +516,7 @@ angular.module('independence-day')
           medGreyAsteroid.enableBody = true;
           medGreyAsteroid.createMultiple(10, 'mediumGreyAsteroid');
           medGreyAsteroid.forEach(function(asteroid){
+
             asteroid.body.setCollisionGroup(asteroidCollisionGroup);
             asteroid.body.collides(playerCollisionGroup);
             asteroid.body.collides(playerBulletCollisionGroup);
@@ -464,7 +525,9 @@ angular.module('independence-day')
             asteroid.body.collides(enemyBulletCollisionGroup);
             asteroid.body.collides(bossCollisionGroup);
             asteroid.body.collides(bossCollisionGroup);
+            asteroid.body.collides(powerupsCollisionGroup);
             asteroid.body.mass = 500;
+
           });
 
           // big brown asteroid
@@ -473,6 +536,7 @@ angular.module('independence-day')
           bigBrownAsteroid.enableBody = true;
           bigBrownAsteroid.createMultiple(5, 'largeBrownAsteroid');
           bigBrownAsteroid.forEach(function(asteroid){
+
             asteroid.body.setCollisionGroup(asteroidCollisionGroup);
             asteroid.body.collides(playerCollisionGroup);
             asteroid.body.collides(playerBulletCollisionGroup);
@@ -481,7 +545,9 @@ angular.module('independence-day')
             asteroid.body.collides(enemyBulletCollisionGroup);
             asteroid.body.collides(bossCollisionGroup);
             asteroid.body.collides(bossCollisionGroup);
+            asteroid.body.collides(powerupsCollisionGroup);
             asteroid.body.mass = 700;
+
           });
 
           // health powerup
@@ -490,8 +556,12 @@ angular.module('independence-day')
           healthPowerup.enableBody = true;
           healthPowerup.createMultiple(3, 'healthPowerUp');
           healthPowerup.forEach(function(powerup){
+
             powerup.body.setCollisionGroup(powerupsCollisionGroup);
             powerup.body.collides(playerCollisionGroup, addHealthToPlayer);
+            powerup.body.collides(asteroidCollisionGroup);
+            powerup.body.collides(enemyCollisionGroup);
+
           });
 
           // basic player movment
@@ -513,40 +583,53 @@ angular.module('independence-day')
           explosions.setAll('anchor.x', 0.5);
           explosions.setAll('anchor.y', 0.5);
           explosions.forEach( function(explosion) {
+
             explosion.animations.add('explosion');
+
+
+          currentTime = game.time.now - $scope.gameStartTime;
+
           });
 
           //  Health stat
 
           var startingPlayerHealth = 3000;
           var currentPlayerHealth = player.health;
-          health = game.add.text(game.camera.width - 250, 10, 'Health: ' + parseFloat((currentPlayerHealth / startingPlayerHealth) * 100).toFixed(0) +'%', { font: '30px Arial', fill: '#fff' });
+          health = game.add.text(game.camera.width / 1.1, 10, 'Health: ' + parseFloat((currentPlayerHealth / startingPlayerHealth) * 100).toFixed(0) +'%', { font: '1.75em Arial', fill: '#fff' });
           health.fixedToCamera = true;
           health.render = function () {
+
               var playerHealthAfterEvent = player.health;
               health.text = 'Health: ' + parseFloat((playerHealthAfterEvent / startingPlayerHealth) * 100).toFixed(0) +'%';
               if(!player.alive){
+
                 health.text = 'Health: 0%';
+
               }
+
           };
 
 
           // Sheilds stat
           var startingPlayerShields = 1000;
           var currentPlayerShields = shields.hitPoints;
-          shieldsText = game.add.text(game.camera.width - 450, 10, 'Shields: ' + parseFloat((currentPlayerShields / startingPlayerShields) * 100).toFixed(0) +'%', { font: '30px Arial', fill: '#fff' });
+          shieldsText = game.add.text(game.camera.width / 1.25, 10, 'Shields: ' + parseFloat((currentPlayerShields / startingPlayerShields) * 100).toFixed(0) +'%', { font: '1.75em Arial', fill: '#fff' });
           shieldsText.fixedToCamera = true;
 
           shieldsText.render = function () {
+
             playerShieldsAfterEvent = shields.hitPoints;
             shieldsText.text = 'Shields: ' + parseFloat((playerShieldsAfterEvent / startingPlayerShields) * 100).toFixed(0) + '%';
             if(player.alive && shields.hitPoints <= 0 ){
+
               shieldsText.text = 'Shields: 0%';
+
             }
+
           };
 
            // Game over text
-          gameOver = game.add.text(game.camera.width / 2, game.camera.height / 2, 'GAME OVER!', { font: '84px Arial', fill: '#fff' });
+          gameOver = game.add.text(game.camera.width / 2, game.camera.height / 2, 'YOU DIED, GAME OVER!', { font: '84px Arial', fill: '#fff' });
           gameOver.anchor.setTo(0.5, 0.5);
           gameOver.visible = false;
           gameOver.fixedToCamera = true;
@@ -557,56 +640,64 @@ angular.module('independence-day')
           youWinText.visible = false;
           youWinText.fixedToCamera = true;
 
+          clickToRestart = game.add.text(game.camera.width / 2, game.camera.height / 1.5, 'Click to Restart', {font: '45px Arial', fill: '#fff'});
+          clickToRestart.anchor.setTo(0.5, 0.5);
+          clickToRestart.visible = false;
+          clickToRestart.fixedToCamera = true;
+
           // enemy counter
-          enemyCounterDisplay = game.add.text(game.camera.width -685, 10, 'Enemies left: ' + enemyCounter, { font: '30px Arial', fill: '#fff'} );
+          enemyCounterDisplay = game.add.text(game.camera.width / 1.46, 10, 'Enemies left: ' + enemyCounter, { font: '1.75em Arial', fill: '#fff'} );
           enemyCounterDisplay.fixedToCamera = true;
 
           enemyCounterDisplay.render = function(){
-            enemyCounterDisplay.text = 'Enemies Left: ' + Math.max(enemyCounter, 0);
+            enemyCounterDisplay.text = 'Enemies Left: ' + enemyCounter;
           };
 
           // wave number text
-          waveText = game.add.text(game.camera.width / 2, game.camera.height / 2 - 200, 'Wave ' + waveNumber, { font: '84px Arial', fill: '#fff' });
+          waveText = game.add.text(game.camera.width / 2, game.camera.height / 2.5, 'Wave ' + waveNumber, { font: '84px Arial', fill: '#fff' });
           waveText.anchor.setTo(0.5, 0.5);
           waveText.visible = false;
           waveText.fixedToCamera = true;
           waveText.render = function() {
-            waveText.text = 'Wave ' + Math.max(waveNumber, 0);
+
+            waveText.text = 'Wave ' + waveNumber;
+
           };
 
           // boss wave text
-          bossWaveText = game.add.text(game.camera.width / 2, game.camera.height / 2 - 200, bossWaveNotification, { font: '84px Arial', fill: '#fff' });
+          bossWaveText = game.add.text(game.camera.width / 2, game.camera.height / 2.5, bossWaveNotification, { font: '84px Arial', fill: '#fff' });
           bossWaveText.anchor.setTo(0.5, 0.5);
           bossWaveText.visible = false;
           bossWaveText.fixedToCamera = true;
 
           // game timer
           gameTimer = '0 min 0.0 sec';
-          gameTimerDisplay = game.add.text(game.camera.width - 1575, 10, `${currentPlayer}'s time: ${gameTimer}`, {font: '30px Arial', fill: '#fff'});
+          gameTimerDisplay = game.add.text(game.camera.width / 75, 10, `${currentUser.username}'s time: ${gameTimer}`, {font: '1.75em Arial', fill: '#fff'});
           gameTimerDisplay.fixedToCamera = true;
           gameTimerDisplay.visible = true;
           gameTimerDisplay.render = function() {
+
             var updatedTime = game.time.now - $scope.gameStartTime;
             var updatedTimeInSeconds = updatedTime / 1000;
             var minutes = parseInt( updatedTimeInSeconds / 60) % 60;
             var seconds = parseFloat(updatedTimeInSeconds % 60).toFixed(1);
-            gameTimerDisplay.text = currentPlayer + "'s time: " + minutes + " min " + seconds + " sec";
+            $scope.currentTime = minutes + " min " + seconds + " sec";
+            gameTimerDisplay.text = currentUser.username + "'s time: " + $scope.currentTime;
+
           };
 
-          // logOutButton = new Phaser.Button(game.camera.width - 1575, game.camera.height - 600, logOut);
+          gamePausedDisplay = game.add.text((game.camera.width / 2) - 200, game.camera.height / 2, `Game Paused. Click Game To Continue`, {font: '3em Comic Sans', fill: '#fff'});
+          gamePausedDisplay.fixedToCamera = true;
+          gamePausedDisplay.visible = false;
 
         };
 
 
         function update() {
 
+
+
           starfield.tilePosition.y += 0.25;
-
-          // if(shields.hitPoints > 0) {
-            // player.body.clearShapes();
-          // }
-
-
 
           pawns.forEach(function(pawn) {
             if(Math.abs(player.position.x - pawn.position.x) <= 900 && Math.abs(player.position.y - pawn.position.y) <= 500 || pawn.engaged){
@@ -614,9 +705,10 @@ angular.module('independence-day')
             pawn.engaged = true;
             moveEnemies(pawn, 80);
             if(pawn.engaged){
-              firePawnBullet(pawn);
-            }
 
+              firePawnBullet(pawn);
+
+            }
 
             }
 
@@ -628,7 +720,9 @@ angular.module('independence-day')
               destroyer.engaged = true;
               moveEnemies(destroyer, 1500);
               if(destroyer.engaged){
+
                 fireDestroyerBullet(destroyer);
+
               }
 
             }
@@ -640,18 +734,21 @@ angular.module('independence-day')
               boss.engaged = true;
               moveEnemies(boss, 1500);
               if(boss.engaged){
+
                 fireBossSmallBullet(boss);
+
               }
               }
           });
 
           if(player.alive && watchIsOn){
+
             gameTimerDisplay.render();
+
           }
 
 
-          if (cursors.up.isDown || wKey.isDown || pad.isDown(Phaser.Gamepad.PS3XC_DPAD_UP) || pad.isDown(Phaser.Gamepad.XBOX360_DPAD_UP) || pad.axis(Phaser.Gamepad.PS3XC_STICK_LEFT_Y) < -0.5)
-            {
+          if (cursors.up.isDown || wKey.isDown || pad.isDown(Phaser.Gamepad.PS3XC_DPAD_UP) || pad.isDown(Phaser.Gamepad.XBOX360_DPAD_UP) || pad.axis(Phaser.Gamepad.PS3XC_STICK_LEFT_Y) < -0.5){
 
               player.body.thrust(50000);
 
@@ -698,13 +795,11 @@ angular.module('independence-day')
           //  Game over?
           if (!player.alive && gameOver.visible === false) {
 
+            setOffExplosions(player);
+            explosion_sound.play()
             gameOver.visible = true;
-            console.log('gameOver', gameOver);
-            var fadeInGameOver = game.add.tween(gameOver);
-            console.log('fadeInGameOver', fadeInGameOver);
-            fadeInGameOver.to({alpha: 1}, 1000, Phaser.Easing.Quintic.Out);
-            fadeInGameOver.onComplete.add(setResetHandlers);
-            fadeInGameOver.start();
+            // clickToRestart.visible = true;
+            // game.input.onDown.addOnce(restart, self);
 
           }
 
@@ -728,32 +823,36 @@ angular.module('independence-day')
 
             gameTimerDisplay.visible = false;
             var timeCompleted = game.time.now - $scope.gameStartTime;
-            removeTimer();
+            gameTimer = timeCompleted;
             var timeCompletedInSeconds = timeCompleted / 1000;
             var minutes = parseInt(timeCompletedInSeconds / 60) % 60;
             var seconds = parseFloat(timeCompletedInSeconds % 60).toFixed(3);
             var timeCompletedFinal = minutes + " min " + seconds + " sec ";
-            var timeCompletedFinalString = timeCompletedFinal.toString();
 
-            $scope.currentCompletedTime = timeCompletedFinalString;
+            $scope.currentCompletedTime = timeCompletedFinal;
 
             youWinText.visible = true;
-            LeaderboardFactory.postToLevel1Leaderboard($scope.currentUserUsername, timeCompletedFinalString)
-              .then(LeaderboardFactory.getLeaderboard()
-                .then((res) => {
-                  $scope.scores = res.data;
-                  for(var fbKey in $scope.scores){
-                    $scope.level1ScoresArray.push($scope.scores[fbKey]);
-                  }
-                  return $scope.level1ScoresArray;
+            // clickToRestart.visible = true;
+            // game.input.onDown.addOnce(youWinRestart, self);
+            // game.add.button(game.world.centerX - 95, 400, 'button', youWinRestart);
 
-                  })
-                .then(() => {
-                    $scope.open('lg');
-                  }
-                )
-              );
-            } else if(enemyCounter <= 0 && secondWaveCompleted && !waveLaunched){
+            LeaderboardFactory.postToLevel1Leaderboard($scope.currentUserUsername, timeCompletedFinal)
+            .then( () => {
+              LeaderboardFactory.getLeaderboard()
+              .then((res) => {
+                $scope.scores = res.data;
+                for(var fbKey in $scope.scores){
+                  $scope.level1ScoresArray.push($scope.scores[fbKey]);
+                }
+                return $scope.level1ScoresArray;
+
+                })
+              .then(() => {
+                  $scope.open('lg');
+                });
+            });
+
+          } else if(enemyCounter <= 0 && secondWaveCompleted && !waveLaunched){
 
             showBossWaveText();
             setTimeout(hideBossWaveText, 4500);
@@ -810,6 +909,8 @@ angular.module('independence-day')
 
         function launchWave (pawns, destroyers, boss, smallBrownAsteroids, medGreyAsteroids, bigBrownAsteroids, moreHealth) {
 
+          enemyCounter = 0;
+          enemyCounterDisplay.render();
           waveLaunched = true;
 
           // if argument exists use it... if not use number
@@ -858,20 +959,6 @@ angular.module('independence-day')
 
         }
 
-        function setResetHandlers() {
-
-            //  The "click to restart" handler
-            tapRestart = game.input.onTap.addOnce(_restart,this);
-            spaceRestart = fireButton.onDown.addOnce(_restart,this);
-            function _restart() {
-
-              tapRestart.detach();
-              spaceRestart.detach();
-              restart();
-
-            }
-        }
-
         function hitEnemy(enemy, bullet) {
             if(!enemy.sprite.isHit){
 
@@ -887,9 +974,9 @@ angular.module('independence-day')
 
               } else{
 
-                // score += enemy.sprite.scorePoints;
                 enemy.sprite.kill();
                 setOffExplosions(enemy);
+                explosion_sound.play()
                 enemyCounter -= 1;
 
               }
@@ -923,59 +1010,38 @@ angular.module('independence-day')
               }
 
             }
-            console.log('enemy shoot player, player.health', player.sprite.health);
-
         }
 
+        // function restart(){
+        //   game.state.clearCurrentState('game');
+        //   game.state.remove('game');
+        //   game.state.add('game', gameState, true);
+        //   // gameTimer = '0 min 0.0 sec'
+        // }
+        //
+        // function youWinRestart(){
+        //   game.state.clearCurrentState('game');
+        //   $location.path('/controls')
+        //   // game.state.remove('game');
+        //   // game.state.add('game', gameState, true);
+        //   // game.switchState('over')
+        // }
 
-        function restart () {
-
-          //  Reset the enemies
-          pawns.callAll('kill');
-          destroyers.callAll('kill');
-          boss.callAll('kill');
-          score = 0;
-          gameScore.render();
-          enemyCounter = 0;
-          enemyCounterDisplay.render();
-          waveLaunched = false;
-          firstWaveCompleted = false;
-          secondWaveCompleted = false;
-          bossIsDown = false;
-          bossHitCount = 0;
-          game.time.events.add(1000, showWaveText);
-          game.time.events.add(4500, hideWaveText);
-          game.time.events.add(5000, launchWave);
-
-          //  Revive the player
-          player.revive();
-          player.shields = 1000;
-          player.health = 3000;
-          shieldsText.render();
-          health.render();
-
-          //  Hide the text
-          gameOver.visible = false;
-
-        }
 
         function shipCollide(player, enemy) {
 
           enemy.sprite.kill();
           setOffExplosions(enemy);
+
           if(!enemy.sprite.hasHit){
             enemyCounter -= 1;
             enemyCounterDisplay.render();
             enemy.sprite.hasHit = true;
-            console.log('1shields.hitPoints', shields.hitPoints)
             if (shields.hitPoints > 0) {
-              console.log('2shields.hitPoints', shields.hitPoints);
               shields.hitPoints -= enemy.sprite.damageAmount;
-              console.log('3shields.hitPoints', shields.hitPoints);
               shields.alpha -= 1;
-              // shieldsText -= enemy.sprite.damageAmount;
               shieldsText.render();
-              destroyShield()
+              destroyShield();
 
             } else {
 
@@ -999,6 +1065,15 @@ angular.module('independence-day')
           explosion.reset(enemy.x, enemy.y);
           explosion.alpha = 0.7;
           explosion.play('explosion', 30, false, true);
+          explosion_sound.play()
+        }
+
+        function setOffPlayerExplosion(player){
+          var explosion = explosions.getFirstExists(false);
+          explosion.reset(player.x, player.y);
+          explosion.alpha = 0.7;
+          explosion.play('explosion', 30, false, true);
+          explosion_sound.play();
         }
 
         function launchBoss() {
@@ -1061,17 +1136,6 @@ angular.module('independence-day')
 
         }
 
-        // function applyShield() {
-
-        //   var playerShield = shields.getFirstExists(false);
-
-        //   if(playerShield){
-        //     playerShield.healthPoints = 60;
-        //     playerShield.reset(0, 0);
-        //   }
-
-        // }
-
         function moveEnemies (enemy, speed) {
          accelerateToObject(enemy,player,speed);  //start accelerateToObject on every enemy
         }
@@ -1102,7 +1166,7 @@ angular.module('independence-day')
               var radians = game.math.degToRad(player.angle);
               phaser.body.applyImpulseLocal([-Math.sin(radians) * 75, Math.cos(radians) * 75], 0, 0);
               phaserTime = game.time.now + phaserSpacing;
-
+              player_laser_sound.play();
             }
           }
 
@@ -1128,7 +1192,7 @@ angular.module('independence-day')
                 var radians = game.math.degToRad(pawn.angle);
                 enemyBullet.body.applyImpulseLocal([-Math.sin(radians) * 40, Math.cos(radians) * 40], 0, 0);
                 pawn.lastShot = game.time.now + pawnBulletSpacing;
-
+                pawn_laser_sound.play();
             }
 
           }
@@ -1155,7 +1219,7 @@ angular.module('independence-day')
                 var radians = game.math.degToRad(destroyer.angle);
                 enemyBullet.body.applyImpulseLocal([-Math.sin(radians) * 40, Math.cos(radians) * 40], 0, 0);
                 destroyer.lastShot = game.time.now + destroyerBulletSpacing;
-
+                destroyer_laser_sound.play();
             }
 
           }
@@ -1182,16 +1246,12 @@ angular.module('independence-day')
                 var radians = game.math.degToRad(boss.angle);
                 enemyBullet.body.applyImpulseLocal([-Math.sin(radians) * 40, Math.cos(radians) * 40], 0, 0);
                 boss.lastShot = game.time.now + bossBulletSpacing;
-
+                boss_laser_sound.play();
             }
 
           }
 
         }
-
-        // function removeAsteroids(){
-
-        // }
 
         function randomlyGenerateSmallBrownAsteroids() {
 
@@ -1269,7 +1329,7 @@ angular.module('independence-day')
             shields.hitPoint = 1000;
             player.sprite.health = 3000;
             health.render();
-            sheildsText.render();
+            shieldsText.render();
             powerup.sprite.kill();
           }
 
@@ -1277,7 +1337,13 @@ angular.module('independence-day')
             shields.hitPoints = 1000;
             player.sprite.health += 100;
             health.render();
-            sheildsText.render();
+            shieldsText.render();
+            powerup.sprite.kill();
+          }
+
+          if(shields.hitPoints > 1000){
+            shields.hitPoints = 1000;
+            shieldsText.render();
             powerup.sprite.kill();
           }
 
@@ -1286,7 +1352,7 @@ angular.module('independence-day')
         function startTimer(){
           watchIsOn = true;
           $scope.gameStartTime = game.time.now;
-          // $timeout();
+          gameTimerDisplay.render();
         }
 
         function removeTimer(){
@@ -1298,9 +1364,48 @@ angular.module('independence-day')
         }
 
         function logOut() {
-          game.input.keyboard.clearCaptures();
           firebase.auth().signOut();
+          $location.path('/');
           game.destroy();
+          $timeout();
+        }
+
+        function seeLeaderboard() {
+          console.log('gamePaused');
+          LeaderboardFactory.getLeaderboard()
+            .then((res) => {
+              $scope.scores = res.data;
+              for(var fbKey in $scope.scores){
+                $scope.level1ScoresArray.push($scope.scores[fbKey]);
+              }
+              return $scope.level1ScoresArray;
+
+              })
+            .then(() => {
+                $scope.open('lg');
+              }
+            );
+          gamePausedDisplay.visible = true;
+          enemyCounterDisplay.visible = false;
+          gameTimerDisplay.visible = false;
+          shieldsText.visible = false;
+          health.visible = false;
+          logOutButton.visible = false;
+          leaderboardButton.visible = false;
+          game.paused = true;
+          game.input.onDown.addOnce(resumeGame, self);
+        }
+
+        function resumeGame() {
+          console.log('game resumed');
+          gamePausedDisplay.visible = false;
+          enemyCounterDisplay.visible = true;
+          gameTimerDisplay.visible = true;
+          shieldsText.visible = true;
+          health.visible = true;
+          logOutButton.visible = true;
+          leaderboardButton.visible = true;
+          game.paused = false;
         }
 
         function destroyShield() {
@@ -1333,7 +1438,7 @@ angular.module('independence-day')
           //   pawn.body.debug = true;
           // });
 
-          player.body.debug = true;
+          // player.body.debug = true;
 
           // phasers.forEach(function(phaser) {
           //   phaser.body.debug = true;
@@ -1343,11 +1448,7 @@ angular.module('independence-day')
 
 
         }
-      });
-      } else {
-        $scope.currentUser = null;
-        $location.path('/');
-        $timeout();
-      }
-    });
+  });
+  }
+
 });

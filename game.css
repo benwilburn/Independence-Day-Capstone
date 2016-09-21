@@ -11,10 +11,30 @@ td {
 }
 
 body {
-    background: url(assets/images/spaceshooter/Backgrounds/starfield.png) repeat center center fixed;
+    background: black url(assets/images/spaceshooter/Backgrounds/starfield.png) repeat center center fixed;
 /*     -webkit-background-size: cover;
     -moz-background-size: cover;
     -o-background-size: cover;
     background-size: cover; */
 }
 
+.panel {
+  margin: 5em;
+  background-color: rgba(255, 255, 255, 0);
+}
+
+.panel-heading {
+  background-color: rgba(255, 255, 255, 0)!important;
+}
+
+label {
+  color: white;
+}
+
+.login-text {
+  color: white;
+}
+
+.controls-img {
+  width: 95%
+}
