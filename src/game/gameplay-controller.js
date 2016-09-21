@@ -63,7 +63,40 @@ angular.module('independence-day')
 
           $scope.currentUserUsername = currentUser.username;
 
-        var game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.AUTO, 'independence-day', { preload: preload, create: create, update: update, render:render });
+        var game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.AUTO, 'independence-day');
+        var gameState = { preload: preload, create: create, update: update, render:render };
+        var overState = {
+          preload: function () {
+            game.load.image('background', 'assets/images/spaceshooter/Backgrounds/starfield.png');
+          },
+          create: function () {
+            game.add.tileSprite(0,0, 2500, 2500, 'background');
+            this.spacebar = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+            var label = game.add.text(width / 2, height / 2, 'YOU WIN \nPress SPACEBAR to restart', {font: '22px Lucida Console', fill: '#ffffff', align: 'center'});
+          },
+          update: function () {
+            gameTimer = '0 min 0.0 sec';
+            if(this.spacebar.isDown){
+              game.state.start('game');
+            }
+          }
+        }
+        game.state.add('game', gameState, false);
+        game.state.add('Over', overState, false);
+        // game.Over.prototype = {
+        //   create: function() {
+        //     game.add.tileSprite(0,0, 2500, 2500, 'background')
+        //     this.spacebar = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+        //     var label = game.add.text(width / 2, height / 2, 'YOU WIN \nPress SPACEBAR to restart', {font: '22px Lucida Console', fill: '#ffffff', align: 'center'});
+        //   },
+        //   update: function() {
+        //     gameTimer = '0 min 0.0 sec';
+        //     if(this.spacebar.isDown){
+        //       game.state.start('game');
+        //     }
+        //   }
+        // }
+        game.state.start('game');
 
         // General Variables
         var starfield;
@@ -158,6 +191,11 @@ angular.module('independence-day')
             game.load.image('damagePowerUp', 'assets/images/spaceshooter/PNG/Power-ups/powerupBlue_bolt.png');
             game.load.image('quit-game', 'assets/gameicons/PNG/White/1x/door.png');
             game.load.image('leaderboard', 'assets/gameicons/PNG/White/1x/leaderboardsComplex.png');
+            game.load.audio('player_laser', 'assets/audio/SoundEffects/lasers/player_laser.ogg');
+            game.load.audio('pawn_laser', 'assets/audio/SoundEffects/lasers/pawn_laser.ogg');
+            game.load.audio('destroyer_laser', 'assets/audio/SoundEffects/lasers/destroyer_laser.ogg');
+            game.load.audio('boss_laser', 'assets/audio/SoundEffects/lasers/boss_laser.ogg');
+            game.load.audio('explosion_sound', 'assets/audio/SoundEffects/explosion/explosion.ogg');
 
         }
 
@@ -170,6 +208,22 @@ angular.module('independence-day')
           game.input.gamepad.start();
 
           pad = game.input.gamepad.pad1;
+
+          // adding game audio sound Effects
+          player_laser_sound = game.add.audio('player_laser');
+          player_laser_sound.allowMultiple = true;
+
+          pawn_laser_sound = game.add.audio('pawn_laser');
+          pawn_laser_sound.allowMultiple = true;
+
+          destroyer_laser_sound = game.add.audio('destroyer_laser');
+          destroyer_laser_sound.allowMultiple = true;
+
+          boss_laser_sound = game.add.audio('boss_laser');
+          boss_laser_sound.allowMultiple = true;
+
+          explosion_sound = game.add.audio('explosion_sound');
+          explosion_sound.allowMultiple = true;
 
           // setting game bounds
           game.world.setBounds(0, 0, 2500, 2500);
@@ -575,7 +629,7 @@ angular.module('independence-day')
           };
 
            // Game over text
-          gameOver = game.add.text(game.camera.width / 2, game.camera.height / 2, 'GAME OVER!', { font: '84px Arial', fill: '#fff' });
+          gameOver = game.add.text(game.camera.width / 2, game.camera.height / 2, 'YOU DIED, GAME OVER!', { font: '84px Arial', fill: '#fff' });
           gameOver.anchor.setTo(0.5, 0.5);
           gameOver.visible = false;
           gameOver.fixedToCamera = true;
@@ -741,9 +795,11 @@ angular.module('independence-day')
           //  Game over?
           if (!player.alive && gameOver.visible === false) {
 
+            setOffExplosions(player);
+            explosion_sound.play()
             gameOver.visible = true;
-            clickToRestart.visible = true;
-            game.input.onDown.addOnce(restart, self);
+            // clickToRestart.visible = true;
+            // game.input.onDown.addOnce(restart, self);
 
           }
 
@@ -776,9 +832,9 @@ angular.module('independence-day')
             $scope.currentCompletedTime = timeCompletedFinal;
 
             youWinText.visible = true;
-            clickToRestart.visible = true;
-            game.input.onDown.addOnce(restart, self);
-
+            // clickToRestart.visible = true;
+            // game.input.onDown.addOnce(youWinRestart, self);
+            // game.add.button(game.world.centerX - 95, 400, 'button', youWinRestart);
 
             LeaderboardFactory.postToLevel1Leaderboard($scope.currentUserUsername, timeCompletedFinal)
             .then( () => {
@@ -903,20 +959,6 @@ angular.module('independence-day')
 
         }
 
-        function setResetHandlers() {
-
-            //  The "click to restart" handler
-            tapRestart = game.input.onTap.addOnce(_restart,this);
-            spaceRestart = fireButton.onDown.addOnce(_restart,this);
-            function _restart() {
-
-              tapRestart.detach();
-              spaceRestart.detach();
-              restart();
-
-            }
-        }
-
         function hitEnemy(enemy, bullet) {
             if(!enemy.sprite.isHit){
 
@@ -934,6 +976,7 @@ angular.module('independence-day')
 
                 enemy.sprite.kill();
                 setOffExplosions(enemy);
+                explosion_sound.play()
                 enemyCounter -= 1;
 
               }
@@ -969,53 +1012,27 @@ angular.module('independence-day')
             }
         }
 
+        // function restart(){
+        //   game.state.clearCurrentState('game');
+        //   game.state.remove('game');
+        //   game.state.add('game', gameState, true);
+        //   // gameTimer = '0 min 0.0 sec'
+        // }
+        //
+        // function youWinRestart(){
+        //   game.state.clearCurrentState('game');
+        //   $location.path('/controls')
+        //   // game.state.remove('game');
+        //   // game.state.add('game', gameState, true);
+        //   // game.switchState('over')
+        // }
 
-        function restart () {
-
-          //  Reset the enemies
-          pawns.callAll('kill');
-          destroyers.callAll('kill');
-          boss.callAll('kill');
-
-          enemyCounter = 0;
-          enemyCounterDisplay.render();
-
-          waveNumber = 1;
-          waveText.render();
-
-          gameTimer = '0 min 0.0 sec'
-          $scope.gameStartTime = game.time.now
-          gameTimerDisplay.render();
-          watchIsOn = false;
-
-          firstWaveCompleted = false;
-          secondWaveCompleted = false;
-          bossIsDown = false;
-          bossHitCount = 0;
-
-          game.time.events.add(1000, showWaveText);
-          game.time.events.add(4500, startTimer);
-          game.time.events.add(4500, hideWaveText);
-          game.time.events.add(5000, launchWave);
-
-          //  Revive the player
-          player.revive();
-          shields.hitPoints = 1000;
-          shieldsText.render();
-          player.health = 3000;
-          health.render();
-
-          //  Hide the text
-          gameOver.visible = false;
-          youWinText.visible = false;
-          clickToRestart.visible = false;
-
-        }
 
         function shipCollide(player, enemy) {
 
           enemy.sprite.kill();
           setOffExplosions(enemy);
+
           if(!enemy.sprite.hasHit){
             enemyCounter -= 1;
             enemyCounterDisplay.render();
@@ -1024,7 +1041,7 @@ angular.module('independence-day')
               shields.hitPoints -= enemy.sprite.damageAmount;
               shields.alpha -= 1;
               shieldsText.render();
-              destroyShield()
+              destroyShield();
 
             } else {
 
@@ -1048,6 +1065,15 @@ angular.module('independence-day')
           explosion.reset(enemy.x, enemy.y);
           explosion.alpha = 0.7;
           explosion.play('explosion', 30, false, true);
+          explosion_sound.play()
+        }
+
+        function setOffPlayerExplosion(player){
+          var explosion = explosions.getFirstExists(false);
+          explosion.reset(player.x, player.y);
+          explosion.alpha = 0.7;
+          explosion.play('explosion', 30, false, true);
+          explosion_sound.play();
         }
 
         function launchBoss() {
@@ -1140,7 +1166,7 @@ angular.module('independence-day')
               var radians = game.math.degToRad(player.angle);
               phaser.body.applyImpulseLocal([-Math.sin(radians) * 75, Math.cos(radians) * 75], 0, 0);
               phaserTime = game.time.now + phaserSpacing;
-
+              player_laser_sound.play();
             }
           }
 
@@ -1166,7 +1192,7 @@ angular.module('independence-day')
                 var radians = game.math.degToRad(pawn.angle);
                 enemyBullet.body.applyImpulseLocal([-Math.sin(radians) * 40, Math.cos(radians) * 40], 0, 0);
                 pawn.lastShot = game.time.now + pawnBulletSpacing;
-
+                pawn_laser_sound.play();
             }
 
           }
@@ -1193,7 +1219,7 @@ angular.module('independence-day')
                 var radians = game.math.degToRad(destroyer.angle);
                 enemyBullet.body.applyImpulseLocal([-Math.sin(radians) * 40, Math.cos(radians) * 40], 0, 0);
                 destroyer.lastShot = game.time.now + destroyerBulletSpacing;
-
+                destroyer_laser_sound.play();
             }
 
           }
@@ -1220,7 +1246,7 @@ angular.module('independence-day')
                 var radians = game.math.degToRad(boss.angle);
                 enemyBullet.body.applyImpulseLocal([-Math.sin(radians) * 40, Math.cos(radians) * 40], 0, 0);
                 boss.lastShot = game.time.now + bossBulletSpacing;
-
+                boss_laser_sound.play();
             }
 
           }
