@@ -1,31 +1,27 @@
 
 angular.module('independence-day')
   .factory('AuthFactory', function($timeout, $location, $http, $q, FIREBASE_URL) {
-    var currentUser = null;
+    var userInfo = null;
     firebase.auth().onAuthStateChanged((user) => {
       if(user) {
-        var users = null;
+        // var users = null;
         $http.get(`${FIREBASE_URL}/auth.json`)
         .then((res) => {
-          users = res.data;
+          var users = res.data;
           return users;
         })
         .then((users) => {
           for(var key in users) {
-            var currUser = users[key];
-              if(currUser.uid === users[key].uid) {
-                currentUser = users[key];
-                return currentUser;
+            // var currUser = users[key];
+            if(user.uid === users[key].uid) {
+              userInfo = users[key];
             }
           }
-        })
-        // .then(() => $location.path('/independence-day'))
-        // .then($timeout);
+        });
+      } else {
+        $location.path('/');
+        $timeout();
       }
-      //  else {
-      //   $location.path('/');
-      //   $timeout();
-      // }
     });
 
     return {
@@ -45,12 +41,12 @@ angular.module('independence-day')
         $http.post(`${FIREBASE_URL}/auth.json`, user);
       },
 
-      currentUser: function(user) {
+      currentUser: function() {
         return {
-          uid: user.id,
-          email: user.email,
+          uid: userInfo.id,
+          email: userInfo.email,
           username: user.username
-        }
+        };
       },
 
       // getUser: function(param) {

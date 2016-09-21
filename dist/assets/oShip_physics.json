@@ -1,71 +1,56 @@
-{
-
+{ 
+    
     "ospaceship-main": [
-
+        
         {
-            "density": 2, "friction": 0, "bounce": 0,
+            "density": 2, "friction": 0, "bounce": 0, 
             "filter": { "categoryBits": 1, "maskBits": 65535 },
-            "shape": [   8, 85  ,  20, 78  ,  29, 91  ,  19, 103  ]
+            "shape": [   33.5, 60  ,  39.5, 51  ,  49.5, 54  ,  41, 69.5  ]
         } ,
         {
-            "density": 2, "friction": 0, "bounce": 0,
+            "density": 2, "friction": 0, "bounce": 0, 
             "filter": { "categoryBits": 1, "maskBits": 65535 },
-            "shape": [   51, 88  ,  59, 80  ,  75, 74  ,  62, 104  ]
+            "shape": [   3.5, 54  ,  13.5, 51  ,  19.5, 60  ,  12, 69.5  ]
         } ,
         {
-            "density": 2, "friction": 0, "bounce": 0,
+            "density": 2, "friction": 0, "bounce": 0, 
             "filter": { "categoryBits": 1, "maskBits": 65535 },
-            "shape": [   4, 53  ,  13, 61  ,  20, 78  ,  8, 85  ]
+            "shape": [   49.5, 28  ,  49.5, 54  ,  44.5, 41  ,  44.5, 27  ]
         } ,
         {
-            "density": 2, "friction": 0, "bounce": 0,
+            "density": 2, "friction": 0, "bounce": 0, 
             "filter": { "categoryBits": 1, "maskBits": 65535 },
-            "shape": [   36, 23  ,  19, 64  ,  32, 9  ,  36, 7  ]
+            "shape": [   39.5, 51  ,  39.5, 47  ,  41, 42.5  ,  44.5, 41  ,  49.5, 54  ]
         } ,
         {
-            "density": 2, "friction": 0, "bounce": 0,
+            "density": 2, "friction": 0, "bounce": 0, 
             "filter": { "categoryBits": 1, "maskBits": 65535 },
-            "shape": [   73, 39  ,  75, 74  ,  66, 61  ,  67, 40  ]
+            "shape": [   8.5, 41  ,  3.5, 54  ,  3.5, 28  ,  8.5, 27  ]
         } ,
         {
-            "density": 2, "friction": 0, "bounce": 0,
+            "density": 2, "friction": 0, "bounce": 0, 
             "filter": { "categoryBits": 1, "maskBits": 65535 },
-            "shape": [   75, 74  ,  59, 80  ,  58, 68  ,  61, 64  ,  66, 61  ]
+            "shape": [   8.5, 41  ,  12, 42.5  ,  16, 45.5  ,  13.5, 51  ,  3.5, 54  ]
         } ,
         {
-            "density": 2, "friction": 0, "bounce": 0,
+            "density": 2, "friction": 0, "bounce": 0, 
             "filter": { "categoryBits": 1, "maskBits": 65535 },
-            "shape": [   11, 39  ,  13, 61  ,  4, 53  ,  7, 39  ]
+            "shape": [   16, 45.5  ,  12, 42.5  ,  24.5, 22  ,  27, 22.5  ,  41, 42.5  ,  36, 45.5  ,  28, 49.5  ]
         } ,
         {
-            "density": 2, "friction": 0, "bounce": 0,
+            "density": 2, "friction": 0, "bounce": 0, 
             "filter": { "categoryBits": 1, "maskBits": 65535 },
-            "shape": [   22, 67  ,  19, 64  ,  43, 35  ,  61, 64  ,  58, 68  ,  35, 73  ]
+            "shape": [   24.5, 22  ,  12, 42.5  ,  21.5, 5  ,  24.5, 5  ]
         } ,
         {
-            "density": 2, "friction": 0, "bounce": 0,
+            "density": 2, "friction": 0, "bounce": 0, 
             "filter": { "categoryBits": 1, "maskBits": 65535 },
-            "shape": [   13, 61  ,  19, 64  ,  22, 67  ,  20, 78  ]
+            "shape": [   31.5, 5  ,  41, 42.5  ,  27, 22.5  ,  28.5, 5  ]
         } ,
         {
-            "density": 2, "friction": 0, "bounce": 0,
+            "density": 2, "friction": 0, "bounce": 0, 
             "filter": { "categoryBits": 1, "maskBits": 65535 },
-            "shape": [   37, 35  ,  19, 64  ,  36, 23  ]
-        } ,
-        {
-            "density": 2, "friction": 0, "bounce": 0,
-            "filter": { "categoryBits": 1, "maskBits": 65535 },
-            "shape": [   49, 28  ,  43, 35  ,  44, 7  ,  47, 6  ]
-        } ,
-        {
-            "density": 2, "friction": 0, "bounce": 0,
-            "filter": { "categoryBits": 1, "maskBits": 65535 },
-            "shape": [   61, 64  ,  43, 35  ,  49, 28  ]
-        } ,
-        {
-            "density": 2, "friction": 0, "bounce": 0,
-            "filter": { "categoryBits": 1, "maskBits": 65535 },
-            "shape": [   43, 35  ,  19, 64  ,  37, 35  ]
+            "shape": [   36, 45.5  ,  41, 42.5  ,  39.5, 47  ]
         }
     ]
 }

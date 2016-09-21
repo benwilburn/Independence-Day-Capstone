@@ -15,6 +15,17 @@ Fly around the map and kill all the ememies in each wave to reach the Boss Wave.
 
 ![Controls](ControlsSreenshot.png)
 
+WASD Keys for movement:
+w = forward
+a = pan Left
+s = backward
+d = pan right
+
+If you have a PS4 controller or select Xbox One controllers, you can use that to play.
+Right Trigger = Fire Weapon
+Left Thumbstick = Forward/Backward
+Right Thumbstick = Pan Left/Right
+
 ![Gameplay](GameplayScreenshot.png)
 
 ### Installation

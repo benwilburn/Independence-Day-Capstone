@@ -5,27 +5,17 @@
         {
             "density": 2, "friction": 0, "bounce": 0, 
             "filter": { "categoryBits": 1, "maskBits": 65535 },
-            "shape": [   19, 23  ,  10, 11  ,  12, 9  ,  22, 11  ,  31, 19  ,  26, 28  ]
+            "shape": [   9, 7  ,  8, 20  ,  3, 23  ,  0, 13  ,  7, -3  ]
         } ,
         {
             "density": 2, "friction": 0, "bounce": 0, 
             "filter": { "categoryBits": 1, "maskBits": 65535 },
-            "shape": [   0, 19  ,  10, 11  ,  19, 23  ,  6, 28  ]
+            "shape": [   23.5, 12  ,  21, 22  ,  16, 20  ,  15, 7  ,  16, -3  ]
         } ,
         {
             "density": 2, "friction": 0, "bounce": 0, 
             "filter": { "categoryBits": 1, "maskBits": 65535 },
-            "shape": [   10, 11  ,  0, 19  ,  8, 1  ,  12, 1  ]
-        } ,
-        {
-            "density": 2, "friction": 0, "bounce": 0, 
-            "filter": { "categoryBits": 1, "maskBits": 65535 },
-            "shape": [   23, 1  ,  31, 19  ,  22, 11  ,  20, 1  ]
-        } ,
-        {
-            "density": 2, "friction": 0, "bounce": 0, 
-            "filter": { "categoryBits": 1, "maskBits": 65535 },
-            "shape": [   22, 11  ,  12, 9  ,  20, 9  ]
+            "shape": [   8, 20  ,  9, 7  ,  15, 7  ,  16, 20  ]
         }
     ]
 }
