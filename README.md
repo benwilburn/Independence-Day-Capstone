@@ -21,7 +21,7 @@ Fly around the map and kill all the ememies in each wave to reach the Boss Wave.
 ---
 ![Login](src/assets/LoginScreenshot.png)
 
-![Controls](src/ControlsSreenshot.png)
+![Controls](src/assets/ControlsSreenshot.png)
 
 WASD Keys for movement:
 w = forward
@@ -34,7 +34,7 @@ Right Trigger = Fire Weapon
 Left Thumbstick = Forward/Backward
 Right Thumbstick = Pan Left/Right
 
-![Gameplay](src/GameplayScreenshot.png)
+![Gameplay](src/assets/GameplayScreenshot.png)
 
 ### Installation
 ---
