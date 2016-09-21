@@ -1,7 +1,15 @@
-# GRIMM
+# Independence-Day
 #### A Free roam, space shooting time trial. Play, as the one and only Russell Casse(Randy Quaid) as he attempts to take down the mothership!
 
-#### Play the Game!
+### Technologies Utilized
+---
+  - Phaser.io
+  - AngularJS
+  - Firebase
+  - Physics Editor
+  - Bootstrap
+
+#### How to play:
 ---
 [Think you have what it takes? Click here to play.](https://benwilburn.com/independence-Day-Capstone)
 
@@ -11,9 +19,9 @@ Fly around the map and kill all the ememies in each wave to reach the Boss Wave.
 
 #### Screenshots:
 ---
-![Login](assets/LoginScreenshot.png)
+![Login](src/assets/LoginScreenshot.png)
 
-![Controls](ControlsSreenshot.png)
+![Controls](src/ControlsSreenshot.png)
 
 WASD Keys for movement:
 w = forward
@@ -26,7 +34,7 @@ Right Trigger = Fire Weapon
 Left Thumbstick = Forward/Backward
 Right Thumbstick = Pan Left/Right
 
-![Gameplay](GameplayScreenshot.png)
+![Gameplay](src/GameplayScreenshot.png)
 
 ### Installation
 ---
@@ -42,14 +50,6 @@ Run in the root of the project:
 ```sh
 $ bower install
 ```
-
-### Technologies
----
-  - Phaser.io
-  - AngularJS
-  - Firebase
-  - Physics Editor
-  - Bootstrap
 
 ### License
 ---
