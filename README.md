@@ -11,7 +11,7 @@
 
 #### How to play:
 ---
-[Think you have what it takes? Click here to play.](https://benwilburn.com/independence-Day-Capstone)
+Think you have what it takes? [Click here to play.](https://benwilburn.com/independence-Day-Capstone)
 
 #### Gameplay:
 ---
