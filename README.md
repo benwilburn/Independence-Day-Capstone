@@ -44,7 +44,9 @@ If you are using HTTPS:
 $ git clone [https://github.com/benwilburn/Independence-Day-Capstone.git]
 ```
 If your are using SSH:
+```sh
 $ git clone [git@github.com:benwilburn/Independence-Day-Capstone.git]
+```
 
 Run in the root of the project:
 ```sh
