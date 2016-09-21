@@ -21,7 +21,7 @@ Fly around the map and kill all the ememies in each wave to reach the Boss Wave.
 ---
 ![Login](src/assets/LoginScreenshot.png)
 
-![Controls](src/assets/ControlsSreenshot.png)
+![Controls](src/assets/ControlsScreenshot.png)
 
 WASD Keys for movement:
 w = forward
